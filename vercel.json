@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nestjs",
   "installCommand": "npm install",
-  "buildCommand": "npm run build -w @bdg-pods/shared && npm run prisma:generate -w @bdg-pods/api"
+  "buildCommand": "npm run build -w @bdg-pods/shared && npm run build -w @bdg-pods/api"
 }
