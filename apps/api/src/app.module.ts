@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './common/prisma/prisma.module';
-import { UploadsModule } from './modules/uploads/uploads.module';
-import { ImportsModule } from './modules/imports/imports.module';
 import { BdgModule } from './modules/bdg/bdg.module';
 import { PodsModule } from './modules/pods/pods.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
@@ -14,8 +12,6 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
       envFilePath: ['.env', '../../.env'],
     }),
     PrismaModule,
-    UploadsModule,
-    ImportsModule,
     BdgModule,
     PodsModule,
     DashboardModule,

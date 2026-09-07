@@ -67,6 +67,8 @@ const emptyForm = {
   ukeuOutbound: 0,
   naInbound: 0,
   naOutbound: 0,
+  periodStart: '',
+  periodEnd: '',
 };
 
 export default function BdgPage() {
@@ -237,6 +239,8 @@ export default function BdgPage() {
       ukeuOutbound: Number(row.ukeuOutbound ?? 0),
       naInbound: Number(row.naInbound ?? 0),
       naOutbound: Number(row.naOutbound ?? 0),
+      periodStart: row.periodStart ? String(row.periodStart).slice(0, 10) : '',
+      periodEnd: row.periodEnd ? String(row.periodEnd).slice(0, 10) : '',
     });
     setEditOpen(true);
   };
@@ -245,8 +249,13 @@ export default function BdgPage() {
     setBusy(true);
     setError('');
     try {
-      if (editId) await bdgApi.update(editId, form);
-      else await bdgApi.create(form);
+      const payload = {
+        ...form,
+        periodStart: form.periodStart || null,
+        periodEnd: form.periodEnd || null,
+      };
+      if (editId) await bdgApi.update(editId, payload);
+      else await bdgApi.create(payload);
       setEditOpen(false);
       setReloadKey((k) => k + 1);
     } catch (e) {
@@ -269,7 +278,12 @@ export default function BdgPage() {
   if (loading && !summary) return <LoadingState />;
   if (error && !summary) return <ErrorState message={error} />;
   if (!summary) {
-    return <EmptyState title="No BDG data" description="Upload a BDG report to begin." />;
+    return (
+      <EmptyState
+        title="No BDG data"
+        description="Add a BDG member to begin tracking leads."
+      />
+    );
   }
 
   return (
@@ -597,37 +611,38 @@ export default function BdgPage() {
           <Stack spacing={2} sx={{ pt: 1 }}>
             {(
               [
-                ['memberName', 'BDG Member'],
-                ['totalInbound', 'Inbound'],
-                ['totalOutbound', 'Outbound'],
-                ['apacInbound', 'APAC Inbound'],
-                ['apacOutbound', 'APAC Outbound'],
-                ['menaInbound', 'MENA Inbound'],
-                ['menaOutbound', 'MENA Outbound'],
-                ['internationalInbound', 'International Inbound'],
-                ['internationalOutbound', 'International Outbound'],
-                ['ukeuInbound', 'UK/EU Inbound'],
-                ['ukeuOutbound', 'UK/EU Outbound'],
-                ['naInbound', 'NA Inbound'],
-                ['naOutbound', 'NA Outbound'],
+                ['memberName', 'BDG Member', 'text'],
+                ['periodStart', 'Period Start', 'date'],
+                ['periodEnd', 'Period End', 'date'],
+                ['totalInbound', 'Inbound', 'number'],
+                ['totalOutbound', 'Outbound', 'number'],
+                ['apacInbound', 'APAC Inbound', 'number'],
+                ['apacOutbound', 'APAC Outbound', 'number'],
+                ['menaInbound', 'MENA Inbound', 'number'],
+                ['menaOutbound', 'MENA Outbound', 'number'],
+                ['internationalInbound', 'International Inbound', 'number'],
+                ['internationalOutbound', 'International Outbound', 'number'],
+                ['ukeuInbound', 'UK/EU Inbound', 'number'],
+                ['ukeuOutbound', 'UK/EU Outbound', 'number'],
+                ['naInbound', 'NA Inbound', 'number'],
+                ['naOutbound', 'NA Outbound', 'number'],
               ] as const
-            ).map(([key, label]) => (
+            ).map(([key, label, type]) => (
               <TextField
                 key={key}
                 label={label}
-                type={key === 'memberName' ? 'text' : 'number'}
+                type={type}
                 value={form[key]}
                 onChange={(e) =>
                   setForm((f) => ({
                     ...f,
                     [key]:
-                      key === 'memberName'
-                        ? e.target.value
-                        : Number(e.target.value),
+                      type === 'number' ? Number(e.target.value) : e.target.value,
                   }))
                 }
                 fullWidth
                 size="small"
+                InputLabelProps={type === 'date' ? { shrink: true } : undefined}
               />
             ))}
           </Stack>

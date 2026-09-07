@@ -33,10 +33,8 @@ interface Summary {
 }
 
 const links = [
-  { title: 'BDG Dashboard', to: '/bdg', desc: 'Member leads and regional performance' },
-  { title: 'PODS Dashboard', to: '/pods', desc: 'POD completion and progress history' },
-  { title: 'Upload Data', to: '/uploads', desc: 'Import BDG or PODS reports' },
-  { title: 'Import History', to: '/imports', desc: 'Review past import jobs' },
+  { title: 'BDG Dashboard', to: '/bdg', desc: 'Add and manage member leads by region' },
+  { title: 'PODS Dashboard', to: '/pods', desc: 'Add PODs and track completion progress' },
 ];
 
 export default function DashboardPage() {
@@ -112,7 +110,7 @@ export default function DashboardPage() {
           const accents = ['#0052CC', '#FFAB00', '#36B37E', '#6554C0'];
           const accent = accents[index % accents.length];
           return (
-            <Grid item xs={12} sm={6} md={3} key={link.to}>
+            <Grid item xs={12} sm={6} md={6} key={link.to}>
               <Card
                 sx={{
                   height: '100%',

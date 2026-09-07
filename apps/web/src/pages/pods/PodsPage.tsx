@@ -73,6 +73,13 @@ const emptyForm = {
   integrationCompletion: 0,
 };
 
+const emptyDailyForm = {
+  date: new Date().toISOString().slice(0, 10),
+  feCompletion: 0,
+  beCompletion: 0,
+  integrationCompletion: 0,
+};
+
 export default function PodsPage() {
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [status, setStatus] = useState<Array<{ status: string; count: number }>>([]);
@@ -101,6 +108,8 @@ export default function PodsPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [dailyOpen, setDailyOpen] = useState(false);
+  const [dailyForm, setDailyForm] = useState(emptyDailyForm);
   const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -238,10 +247,43 @@ export default function PodsPage() {
     }
   };
 
+  const openDailyCreate = () => {
+    const options = allPods.length ? allPods : rows;
+    const selected = options.find((p) => String(p.id) === historyPodId);
+    setDailyForm({
+      ...emptyDailyForm,
+      date: new Date().toISOString().slice(0, 10),
+      feCompletion: Number(selected?.feCompletion ?? 0),
+      beCompletion: Number(selected?.beCompletion ?? 0),
+      integrationCompletion: Number(selected?.integrationCompletion ?? 0),
+    });
+    setDailyOpen(true);
+  };
+
+  const saveDaily = async () => {
+    if (!historyPodId) return;
+    setBusy(true);
+    setError('');
+    try {
+      await podsApi.upsertDaily(historyPodId, dailyForm);
+      setDailyOpen(false);
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading && !summary) return <LoadingState />;
   if (error && !summary) return <ErrorState message={error} />;
   if (!summary) {
-    return <EmptyState title="No PODS data" description="Upload a PODS report to begin." />;
+    return (
+      <EmptyState
+        title="No PODS data"
+        description="Add a POD to begin tracking completion."
+      />
+    );
   }
 
   const historyChart = history.map((h) => ({
@@ -515,9 +557,19 @@ export default function PodsPage() {
                     />
                   </>
                 ) : null}
+                <Button
+                  variant="contained"
+                  disabled={!historyPodId}
+                  onClick={openDailyCreate}
+                >
+                  Add Daily Update
+                </Button>
               </Stack>
               {historyChart.length === 0 ? (
-                <EmptyState title="No daily updates for this POD" />
+                <EmptyState
+                  title="No daily updates for this POD"
+                  description="Use Add Daily Update to record FE / BE / Integration % for a date."
+                />
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={historyChart}>
@@ -825,6 +877,75 @@ export default function PodsPage() {
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
           <Button variant="contained" disabled={busy || !form.name.trim()} onClick={savePod}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={dailyOpen} onClose={() => setDailyOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Add Daily Update</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              POD:{' '}
+              {String(
+                podOptions.find((p) => String(p.id) === historyPodId)?.name ?? '—',
+              )}
+            </Typography>
+            <TextField
+              label="Date"
+              type="date"
+              size="small"
+              fullWidth
+              value={dailyForm.date}
+              onChange={(e) => setDailyForm((f) => ({ ...f, date: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="FE Completion %"
+              type="number"
+              size="small"
+              fullWidth
+              inputProps={{ min: 0, max: 100 }}
+              value={dailyForm.feCompletion}
+              onChange={(e) =>
+                setDailyForm((f) => ({ ...f, feCompletion: Number(e.target.value) }))
+              }
+            />
+            <TextField
+              label="BE Completion %"
+              type="number"
+              size="small"
+              fullWidth
+              inputProps={{ min: 0, max: 100 }}
+              value={dailyForm.beCompletion}
+              onChange={(e) =>
+                setDailyForm((f) => ({ ...f, beCompletion: Number(e.target.value) }))
+              }
+            />
+            <TextField
+              label="Integration Completion %"
+              type="number"
+              size="small"
+              fullWidth
+              inputProps={{ min: 0, max: 100 }}
+              value={dailyForm.integrationCompletion}
+              onChange={(e) =>
+                setDailyForm((f) => ({
+                  ...f,
+                  integrationCompletion: Number(e.target.value),
+                }))
+              }
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDailyOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={busy || !historyPodId || !dailyForm.date}
+            onClick={saveDaily}
+          >
             Save
           </Button>
         </DialogActions>

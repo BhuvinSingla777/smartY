@@ -19,7 +19,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PodsService, PodUpsertDto } from './pods.service';
+import { PodsService, PodUpsertDto, PodDailyUpsertDto } from './pods.service';
 
 class PodsQueryDto {
   @IsOptional()
@@ -149,6 +149,29 @@ class PodBodyDto implements PodUpsertDto {
   integrationCompletion?: number | null;
 }
 
+class PodDailyBodyDto implements PodDailyUpsertDto {
+  @IsString()
+  date!: string;
+
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @Type(() => Number)
+  @IsNumber()
+  feCompletion?: number | null;
+
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @Type(() => Number)
+  @IsNumber()
+  beCompletion?: number | null;
+
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @Type(() => Number)
+  @IsNumber()
+  integrationCompletion?: number | null;
+}
+
 @Controller('pods')
 export class PodsController {
   constructor(private readonly pods: PodsService) {}
@@ -238,6 +261,25 @@ export class PodsController {
       dateTo: query.dateTo,
       range: query.range,
     });
+  }
+
+  @Post(':id/daily')
+  upsertDaily(@Param('id') id: string, @Body() dto: PodDailyBodyDto) {
+    return this.pods.upsertDaily(id, dto);
+  }
+
+  @Patch(':id/daily/:dailyId')
+  updateDaily(
+    @Param('id') id: string,
+    @Param('dailyId') dailyId: string,
+    @Body() dto: PodDailyBodyDto,
+  ) {
+    return this.pods.updateDaily(id, dailyId, dto);
+  }
+
+  @Delete(':id/daily/:dailyId')
+  removeDaily(@Param('id') id: string, @Param('dailyId') dailyId: string) {
+    return this.pods.removeDaily(id, dailyId);
   }
 
   @Get(':id')

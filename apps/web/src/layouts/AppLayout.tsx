@@ -19,8 +19,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import HistoryIcon from '@mui/icons-material/History';
 import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 
 const DRAWER_WIDTH = 248;
@@ -29,8 +27,6 @@ const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon fontSize="small" /> },
   { label: 'BDG', path: '/bdg', icon: <GroupsIcon fontSize="small" /> },
   { label: 'PODS', path: '/pods', icon: <ViewModuleIcon fontSize="small" /> },
-  { label: 'Upload', path: '/uploads', icon: <CloudUploadIcon fontSize="small" /> },
-  { label: 'Imports', path: '/imports', icon: <HistoryIcon fontSize="small" /> },
 ];
 
 function NavDrawerContent({

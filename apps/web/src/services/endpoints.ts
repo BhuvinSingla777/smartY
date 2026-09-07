@@ -41,47 +41,29 @@ export const podsApi = {
   update: async (id: string, body: Record<string, unknown>) =>
     (await api.patch(`/pods/${id}`, body)).data,
   remove: async (id: string) => (await api.delete(`/pods/${id}`)).data,
+  upsertDaily: async (
+    id: string,
+    body: {
+      date: string;
+      feCompletion?: number | null;
+      beCompletion?: number | null;
+      integrationCompletion?: number | null;
+    },
+  ) => (await api.post(`/pods/${id}/daily`, body)).data,
+  updateDaily: async (
+    id: string,
+    dailyId: string,
+    body: {
+      date?: string;
+      feCompletion?: number | null;
+      beCompletion?: number | null;
+      integrationCompletion?: number | null;
+    },
+  ) => (await api.patch(`/pods/${id}/daily/${dailyId}`, body)).data,
+  removeDaily: async (id: string, dailyId: string) =>
+    (await api.delete(`/pods/${id}/daily/${dailyId}`)).data,
   exportUrl: (format: 'csv' | 'xlsx', params?: Record<string, string>) => {
     const q = new URLSearchParams({ format, ...params }).toString();
     return `/api/pods/export?${q}`;
   },
-};
-
-export const uploadsApi = {
-  create: async (file: File, module: 'BDG' | 'PODS') => {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('module', module);
-    const { data } = await api.post('/uploads', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return data;
-  },
-  list: async (page = 1) =>
-    (await api.get('/uploads', { params: { page } })).data,
-  get: async (id: string) => (await api.get(`/uploads/${id}`)).data,
-};
-
-export const importsApi = {
-  preview: async (file: File, module: 'BDG' | 'PODS') => {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('module', module);
-    const { data } = await api.post('/imports/preview', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return data;
-  },
-  commit: async (file: File, module: 'BDG' | 'PODS') => {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('module', module);
-    const { data } = await api.post('/imports/commit', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return data;
-  },
-  list: async (page = 1, module?: string) =>
-    (await api.get('/imports', { params: { page, module } })).data,
-  get: async (id: string) => (await api.get(`/imports/${id}`)).data,
 };

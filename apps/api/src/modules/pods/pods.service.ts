@@ -33,6 +33,13 @@ export interface PodUpsertDto {
   integrationCompletion?: number | null;
 }
 
+export interface PodDailyUpsertDto {
+  date: string;
+  feCompletion?: number | null;
+  beCompletion?: number | null;
+  integrationCompletion?: number | null;
+}
+
 @Injectable()
 export class PodsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -150,6 +157,7 @@ export class PodsService {
     const created = await this.prisma.pod.create({
       data: this.toPrismaData(dto, normalized),
     });
+    await this.syncDailySnapshot(created.id, dto);
     return this.enrich(created);
   }
 
@@ -175,6 +183,7 @@ export class PodsService {
         normalizedName: normalized,
       },
     });
+    await this.syncDailySnapshot(id, dto);
     return this.enrich(updated);
   }
 
@@ -302,6 +311,156 @@ export class PodsService {
   async exportAll(query: PodsListQuery) {
     const result = await this.findAll({ ...query, page: 1, pageSize: 10000 });
     return result.data;
+  }
+
+  async upsertDaily(podId: string, dto: PodDailyUpsertDto) {
+    const pod = await this.prisma.pod.findUnique({ where: { id: podId } });
+    if (!pod) throw new NotFoundException('POD not found');
+    this.assertValidDaily(dto);
+
+    const date = this.parseDateOnly(dto.date);
+    const fe = this.pctOrNull(dto.feCompletion);
+    const be = this.pctOrNull(dto.beCompletion);
+    const integration = this.pctOrNull(dto.integrationCompletion);
+
+    const existing = await this.prisma.podDailyUpdate.findUnique({
+      where: { podId_date: { podId, date } },
+    });
+
+    const daily = existing
+      ? await this.prisma.podDailyUpdate.update({
+          where: { id: existing.id },
+          data: {
+            feCompletion: fe,
+            beCompletion: be,
+            integrationCompletion: integration,
+          },
+        })
+      : await this.prisma.podDailyUpdate.create({
+          data: {
+            podId,
+            date,
+            feCompletion: fe,
+            beCompletion: be,
+            integrationCompletion: integration,
+          },
+        });
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    if (dto.date.slice(0, 10) === todayIso || date.toISOString().slice(0, 10) === todayIso) {
+      await this.prisma.pod.update({
+        where: { id: podId },
+        data: {
+          feCompletion: fe,
+          beCompletion: be,
+          integrationCompletion: integration,
+        },
+      });
+    }
+
+    return daily;
+  }
+
+  async updateDaily(podId: string, dailyId: string, dto: PodDailyUpsertDto) {
+    const existing = await this.prisma.podDailyUpdate.findFirst({
+      where: { id: dailyId, podId },
+    });
+    if (!existing) throw new NotFoundException('Daily update not found');
+    this.assertValidDaily({ ...dto, date: dto.date || existing.date.toISOString().slice(0, 10) });
+
+    const date = dto.date ? this.parseDateOnly(dto.date) : existing.date;
+    if (dto.date) {
+      const clash = await this.prisma.podDailyUpdate.findUnique({
+        where: { podId_date: { podId, date } },
+      });
+      if (clash && clash.id !== dailyId) {
+        throw new BadRequestException(
+          `A daily update already exists for ${dto.date}`,
+        );
+      }
+    }
+
+    return this.prisma.podDailyUpdate.update({
+      where: { id: dailyId },
+      data: {
+        date,
+        feCompletion:
+          dto.feCompletion === undefined
+            ? existing.feCompletion
+            : this.pctOrNull(dto.feCompletion),
+        beCompletion:
+          dto.beCompletion === undefined
+            ? existing.beCompletion
+            : this.pctOrNull(dto.beCompletion),
+        integrationCompletion:
+          dto.integrationCompletion === undefined
+            ? existing.integrationCompletion
+            : this.pctOrNull(dto.integrationCompletion),
+      },
+    });
+  }
+
+  async removeDaily(podId: string, dailyId: string) {
+    const existing = await this.prisma.podDailyUpdate.findFirst({
+      where: { id: dailyId, podId },
+    });
+    if (!existing) throw new NotFoundException('Daily update not found');
+    await this.prisma.podDailyUpdate.delete({ where: { id: dailyId } });
+    return { id: dailyId, deleted: true };
+  }
+
+  private async syncDailySnapshot(podId: string, dto: PodUpsertDto) {
+    const hasCompletion =
+      dto.feCompletion != null ||
+      dto.beCompletion != null ||
+      dto.integrationCompletion != null;
+    if (!hasCompletion) return;
+
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10);
+    await this.upsertDaily(podId, {
+      date: dateStr,
+      feCompletion: dto.feCompletion ?? null,
+      beCompletion: dto.beCompletion ?? null,
+      integrationCompletion: dto.integrationCompletion ?? null,
+    });
+  }
+
+  private assertValidDaily(dto: PodDailyUpsertDto) {
+    if (!dto.date?.trim()) {
+      throw new BadRequestException('Date is required');
+    }
+    this.parseDateOnly(dto.date);
+    for (const [label, value] of [
+      ['FE', dto.feCompletion],
+      ['BE', dto.beCompletion],
+      ['Integration', dto.integrationCompletion],
+    ] as const) {
+      if (value === null || value === undefined) continue;
+      const n = normalizePercentage(value);
+      if (n === null || n < 0 || n > 100) {
+        throw new BadRequestException(
+          `Invalid completion percentage for ${label}`,
+        );
+      }
+    }
+  }
+
+  private parseDateOnly(value: string) {
+    const m = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+    }
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+      throw new BadRequestException(`Invalid date: ${value}`);
+    }
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  }
+
+  private pctOrNull(value: number | null | undefined) {
+    if (value === null || value === undefined) return null;
+    return normalizePercentage(value);
   }
 
   private assertValidPod(dto: PodUpsertDto) {
