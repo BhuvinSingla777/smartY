@@ -2,6 +2,7 @@
   "name": "bdg-pods-dashboard",
   "version": "1.0.0",
   "private": true,
+  "main": "apps/api/src/main.ts",
   "description": "BDG & PODS Analytics Dashboard",
   "workspaces": [
     "apps/*",

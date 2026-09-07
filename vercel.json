@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build -w @bdg-pods/shared && npm run prisma:generate -w @bdg-pods/api"
+}
