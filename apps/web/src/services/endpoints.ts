@@ -1,4 +1,4 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 
 export const dashboardApi = {
   summary: async () => (await api.get('/dashboard/summary')).data,
@@ -19,7 +19,7 @@ export const bdgApi = {
   remove: async (id: string) => (await api.delete(`/bdg/${id}`)).data,
   exportUrl: (format: 'csv' | 'xlsx', params?: Record<string, string>) => {
     const q = new URLSearchParams({ format, ...params }).toString();
-    return `/api/bdg/export?${q}`;
+    return `${API_BASE_URL}/bdg/export?${q}`;
   },
 };
 
@@ -64,6 +64,6 @@ export const podsApi = {
     (await api.delete(`/pods/${id}/daily/${dailyId}`)).data,
   exportUrl: (format: 'csv' | 'xlsx', params?: Record<string, string>) => {
     const q = new URLSearchParams({ format, ...params }).toString();
-    return `/api/pods/export?${q}`;
+    return `${API_BASE_URL}/pods/export?${q}`;
   },
 };

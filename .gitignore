@@ -3,6 +3,7 @@ dist/
 build/
 .env
 .env.local
+deploy.env
 *.log
 tmp/
 coverage/
@@ -12,4 +13,5 @@ coverage/
 apps/api/uploads/
 apps/web/dist/
 packages/shared/dist/
+.vercel/
 .~lock.*
