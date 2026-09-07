@@ -158,12 +158,12 @@ export default function PodDetailPage() {
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="FE" stroke="#0B3D5C" strokeWidth={2} />
-                    <Line type="monotone" dataKey="BE" stroke="#C45C26" strokeWidth={2} />
+                    <Line type="monotone" dataKey="FE" stroke="#0052CC" strokeWidth={2} />
+                    <Line type="monotone" dataKey="BE" stroke="#FFAB00" strokeWidth={2} />
                     <Line
                       type="monotone"
                       dataKey="Integration"
-                      stroke="#2E7D4F"
+                      stroke="#36B37E"
                       strokeWidth={2}
                     />
                   </LineChart>

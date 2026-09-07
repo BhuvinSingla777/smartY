@@ -189,8 +189,8 @@ export function ImportDetailPage() {
             sx={{
               overflow: 'auto',
               maxHeight: 480,
-              bgcolor: '#0B3D5C',
-              color: '#E8EEF3',
+              bgcolor: '#0747A6',
+              color: '#DEEBFF',
               p: 2,
               borderRadius: 1,
               fontSize: 12,

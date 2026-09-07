@@ -108,24 +108,45 @@ export default function DashboardPage() {
         Navigate
       </Typography>
       <Grid container spacing={2}>
-        {links.map((link) => (
-          <Grid item xs={12} sm={6} md={3} key={link.to}>
-            <Card>
-              <CardActionArea component={RouterLink} to={link.to}>
-                <CardContent>
-                  <Stack spacing={0.5}>
-                    <Typography variant="subtitle1" fontWeight={700}>
-                      {link.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {link.desc}
-                    </Typography>
-                  </Stack>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
+        {links.map((link, index) => {
+          const accents = ['#0052CC', '#FFAB00', '#36B37E', '#6554C0'];
+          const accent = accents[index % accents.length];
+          return (
+            <Grid item xs={12} sm={6} md={3} key={link.to}>
+              <Card
+                sx={{
+                  height: '100%',
+                  transition: 'box-shadow 0.2s, transform 0.2s',
+                  '&:hover': {
+                    boxShadow: '0 8px 16px -4px rgba(9, 30, 66, 0.16)',
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+              >
+                <CardActionArea component={RouterLink} to={link.to} sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Stack spacing={1}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: accent,
+                        }}
+                      />
+                      <Typography variant="subtitle1" fontWeight={700}>
+                        {link.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {link.desc}
+                      </Typography>
+                    </Stack>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
     </Box>
   );

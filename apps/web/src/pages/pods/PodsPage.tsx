@@ -56,7 +56,7 @@ import {
   PageHeader,
 } from '../../components/Common';
 
-const PIE_COLORS = ['#0B3D5C', '#1A5F86', '#C45C26', '#2E7D4F', '#B86E00', '#5B6B7A'];
+const PIE_COLORS = ['#0052CC', '#4C9AFF', '#FFAB00', '#36B37E', '#6554C0', '#6B778C'];
 
 const POD_STATUSES = ['Not Started', 'In Progress', 'Completed', 'On Hold', 'Blocked'];
 
@@ -376,7 +376,7 @@ export default function PodsPage() {
                   <XAxis type="number" domain={[0, 100]} />
                   <YAxis type="category" dataKey="name" width={110} />
                   <Tooltip />
-                  <Bar dataKey="overallCompletion" fill="#0B3D5C" name="Overall %" />
+                  <Bar dataKey="overallCompletion" fill="#0052CC" name="Overall %" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -445,9 +445,9 @@ export default function PodsPage() {
                   <YAxis domain={[0, 100]} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="feCompletion" fill="#0B3D5C" name="FE %" />
-                  <Bar dataKey="beCompletion" fill="#C45C26" name="BE %" />
-                  <Bar dataKey="integrationCompletion" fill="#2E7D4F" name="Integration %" />
+                  <Bar dataKey="feCompletion" fill="#0052CC" name="FE %" />
+                  <Bar dataKey="beCompletion" fill="#FFAB00" name="BE %" />
+                  <Bar dataKey="integrationCompletion" fill="#36B37E" name="Integration %" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -526,12 +526,12 @@ export default function PodsPage() {
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="FE" stroke="#0B3D5C" strokeWidth={2} />
-                    <Line type="monotone" dataKey="BE" stroke="#C45C26" strokeWidth={2} />
+                    <Line type="monotone" dataKey="FE" stroke="#0052CC" strokeWidth={2} />
+                    <Line type="monotone" dataKey="BE" stroke="#FFAB00" strokeWidth={2} />
                     <Line
                       type="monotone"
                       dataKey="Integration"
-                      stroke="#2E7D4F"
+                      stroke="#36B37E"
                       strokeWidth={2}
                     />
                   </LineChart>

@@ -18,12 +18,23 @@ export function KpiCard({
   subtitle?: string;
 }) {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card
+      sx={{
+        height: '100%',
+        borderLeft: '3px solid',
+        borderLeftColor: 'primary.main',
+      }}
+    >
       <CardContent>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          gutterBottom
+          sx={{ fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', fontSize: 11 }}
+        >
           {label}
         </Typography>
-        <Typography variant="h4" color="primary.main">
+        <Typography variant="h4" color="text.primary" sx={{ fontWeight: 700 }}>
           {value}
         </Typography>
         {subtitle ? (

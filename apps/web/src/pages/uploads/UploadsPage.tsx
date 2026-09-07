@@ -180,7 +180,7 @@ export default function UploadsPage() {
                 borderRadius: 2,
                 p: 4,
                 textAlign: 'center',
-                bgcolor: dragOver ? 'rgba(11,61,92,0.04)' : 'background.paper',
+                bgcolor: dragOver ? 'rgba(0,82,204,0.06)' : 'background.paper',
               }}
             >
               <CloudUploadIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />

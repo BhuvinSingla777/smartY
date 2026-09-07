@@ -51,7 +51,7 @@ import {
   PageHeader,
 } from '../../components/Common';
 
-const PIE_COLORS = ['#0B3D5C', '#1A5F86', '#C45C26', '#2E7D4F', '#B86E00'];
+const PIE_COLORS = ['#0052CC', '#4C9AFF', '#FFAB00', '#36B37E', '#6554C0'];
 
 const emptyForm = {
   memberName: '',
@@ -354,8 +354,8 @@ export default function BdgPage() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="inbound" fill="#0B3D5C" name="Inbound" />
-                  <Bar dataKey="outbound" fill="#C45C26" name="Outbound" />
+                  <Bar dataKey="inbound" fill="#0052CC" name="Inbound" />
+                  <Bar dataKey="outbound" fill="#FFAB00" name="Outbound" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -388,8 +388,8 @@ export default function BdgPage() {
                   <YAxis type="category" dataKey="memberName" width={100} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="Inbound" fill="#0B3D5C" name="Inbound" />
-                  <Bar dataKey="Outbound" fill="#C45C26" name="Outbound" />
+                  <Bar dataKey="Inbound" fill="#0052CC" name="Inbound" />
+                  <Bar dataKey="Outbound" fill="#FFAB00" name="Outbound" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -411,7 +411,7 @@ export default function BdgPage() {
                     {inboundOutbound.map((entry) => (
                       <Cell
                         key={entry.type}
-                        fill={entry.type === 'Inbound' ? '#0B3D5C' : '#C45C26'}
+                        fill={entry.type === 'Inbound' ? '#0052CC' : '#FFAB00'}
                       />
                     ))}
                   </Bar>
