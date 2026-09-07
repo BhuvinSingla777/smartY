@@ -34,7 +34,11 @@ export function KpiCard({
         >
           {label}
         </Typography>
-        <Typography variant="h4" color="text.primary" sx={{ fontWeight: 700 }}>
+        <Typography
+          variant="h4"
+          color="text.primary"
+          sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2.125rem' }, wordBreak: 'break-word' }}
+        >
           {value}
         </Typography>
         {subtitle ? (
@@ -105,22 +109,46 @@ export function PageHeader({
     <Box
       sx={{
         display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        mb: 3,
+        alignItems: { xs: 'stretch', sm: 'flex-start' },
+        mb: { xs: 2, md: 3 },
         gap: 2,
-        flexWrap: 'wrap',
       }}
     >
-      <Box>
-        <Typography variant="h4" gutterBottom>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' },
+            wordBreak: 'break-word',
+          }}
+        >
           {title}
         </Typography>
         {subtitle ? (
-          <Typography color="text.secondary">{subtitle}</Typography>
+          <Typography color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+            {subtitle}
+          </Typography>
         ) : null}
       </Box>
-      {action}
+      {action ? (
+        <Box
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+            flexShrink: 0,
+            '& > .MuiStack-root': {
+              width: { xs: '100%', sm: 'auto' },
+            },
+            '& .MuiButton-root': {
+              width: { xs: '100%', sm: 'auto' },
+            },
+          }}
+        >
+          {action}
+        </Box>
+      ) : null}
     </Box>
   );
 }

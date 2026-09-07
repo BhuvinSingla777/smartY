@@ -67,3 +67,42 @@ export const podsApi = {
     return `${API_BASE_URL}/pods/export?${q}`;
   },
 };
+
+export const uploadsApi = {
+  create: async (file: File, module: 'BDG' | 'PODS') => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('module', module);
+    const { data } = await api.post('/uploads', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
+  list: async (page = 1) =>
+    (await api.get('/uploads', { params: { page } })).data,
+  get: async (id: string) => (await api.get(`/uploads/${id}`)).data,
+};
+
+export const importsApi = {
+  preview: async (file: File, module: 'BDG' | 'PODS') => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('module', module);
+    const { data } = await api.post('/imports/preview', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
+  commit: async (file: File, module: 'BDG' | 'PODS') => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('module', module);
+    const { data } = await api.post('/imports/commit', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
+  list: async (page = 1, module?: string) =>
+    (await api.get('/imports', { params: { page, module } })).data,
+  get: async (id: string) => (await api.get(`/imports/${id}`)).data,
+};

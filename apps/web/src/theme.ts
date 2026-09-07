@@ -146,6 +146,41 @@ export const theme = createTheme({
           borderRadius: 12,
           boxShadow: '0 8px 16px -4px rgba(9, 30, 66, 0.25)',
         },
+        paperFullScreen: {
+          borderRadius: 0,
+        },
+      },
+    },
+    MuiTablePagination: {
+      styleOverrides: {
+        root: {
+          overflow: 'auto',
+        },
+        toolbar: {
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+          gap: 4,
+          minHeight: '52px !important',
+          paddingLeft: 8,
+          paddingRight: 8,
+        },
+        selectLabel: {
+          margin: 0,
+        },
+        displayedRows: {
+          margin: 0,
+        },
+      },
+    },
+    MuiCardContent: {
+      styleOverrides: {
+        root: {
+          '&:last-child': { paddingBottom: 16 },
+          '@media (max-width:600px)': {
+            padding: 12,
+            '&:last-child': { paddingBottom: 12 },
+          },
+        },
       },
     },
   },

@@ -21,11 +21,14 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -72,6 +75,9 @@ const emptyForm = {
 };
 
 export default function BdgPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTabletDown = useMediaQuery(theme.breakpoints.down('md'));
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [regions, setRegions] = useState<
     Array<{ region: string; inbound: number; outbound: number; total: number }>
@@ -292,7 +298,7 @@ export default function BdgPage() {
         title="BDG Dashboard"
         subtitle="Lead performance by member and region"
         action={
-          <Stack direction="row" spacing={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             <Button variant="outlined" onClick={() => download('csv')}>
               Export CSV
             </Button>
@@ -324,7 +330,7 @@ export default function BdgPage() {
       </Grid>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
-        <FormControl size="small" sx={{ minWidth: 280 }}>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 280 }, width: { xs: '100%', md: 'auto' } }}>
           <InputLabel>Compare members</InputLabel>
           <Select
             multiple
@@ -378,7 +384,13 @@ export default function BdgPage() {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={1}
+                sx={{ mb: 1 }}
+              >
                 <Typography variant="h6">Top Members by Total Leads</Typography>
                 <TextField
                   select
@@ -395,11 +407,20 @@ export default function BdgPage() {
                   ))}
                 </TextField>
               </Stack>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={topChartData} layout="vertical" margin={{ left: 80 }}>
+              <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+                <BarChart
+                  data={topChartData}
+                  layout="vertical"
+                  margin={{ left: isMobile ? 8 : 80, right: 8 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
-                  <YAxis type="category" dataKey="memberName" width={100} />
+                  <YAxis
+                    type="category"
+                    dataKey="memberName"
+                    width={isMobile ? 72 : 100}
+                    tick={{ fontSize: isMobile ? 10 : 12 }}
+                  />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="Inbound" fill="#0052CC" name="Inbound" />
@@ -446,8 +467,8 @@ export default function BdgPage() {
                     data={regionPie}
                     dataKey="value"
                     nameKey="name"
-                    outerRadius={85}
-                    label
+                    outerRadius={isMobile ? 70 : 85}
+                    label={!isTabletDown}
                   >
                     {regionPie.map((_, i) => (
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -478,7 +499,7 @@ export default function BdgPage() {
                 setPage(0);
                 setSearch(e.target.value);
               }}
-              sx={{ minWidth: 220 }}
+              sx={{ minWidth: { xs: '100%', md: 220 }, width: { xs: '100%', md: 'auto' } }}
             />
             <TextField
               select
@@ -486,7 +507,7 @@ export default function BdgPage() {
               size="small"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              sx={{ minWidth: 160 }}
+              sx={{ minWidth: { xs: '100%', md: 160 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="updatedAt">Last Updated</MenuItem>
               <MenuItem value="memberName">Member</MenuItem>
@@ -499,14 +520,15 @@ export default function BdgPage() {
               size="small"
               value={sortDir}
               onChange={(e) => setSortDir(e.target.value as 'asc' | 'desc')}
-              sx={{ minWidth: 120 }}
+              sx={{ minWidth: { xs: '100%', md: 120 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="desc">Desc</MenuItem>
               <MenuItem value="asc">Asc</MenuItem>
             </TextField>
           </Stack>
 
-          <Table size="small">
+          <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
+            <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead>
               <TableRow>
                 <TableCell>BDG Member</TableCell>
@@ -591,6 +613,7 @@ export default function BdgPage() {
               ) : null}
             </TableBody>
           </Table>
+          </TableContainer>
           <TablePagination
             component="div"
             count={total}
@@ -601,11 +624,18 @@ export default function BdgPage() {
               setPageSize(parseInt(e.target.value, 10));
               setPage(0);
             }}
+            labelRowsPerPage={isMobile ? 'Rows' : 'Rows per page'}
           />
         </CardContent>
       </Card>
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
         <DialogTitle>{editId ? 'Update BDG Member' : 'Add BDG Member'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ pt: 1 }}>

@@ -19,6 +19,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupsIcon from '@mui/icons-material/Groups';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import HistoryIcon from '@mui/icons-material/History';
 import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 
 const DRAWER_WIDTH = 248;
@@ -27,6 +29,8 @@ const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon fontSize="small" /> },
   { label: 'BDG', path: '/bdg', icon: <GroupsIcon fontSize="small" /> },
   { label: 'PODS', path: '/pods', icon: <ViewModuleIcon fontSize="small" /> },
+  { label: 'Upload', path: '/uploads', icon: <CloudUploadIcon fontSize="small" /> },
+  { label: 'Imports', path: '/imports', icon: <HistoryIcon fontSize="small" /> },
 ];
 
 function NavDrawerContent({
@@ -159,8 +163,18 @@ export default function AppLayout() {
             <IconButton edge="start" onClick={() => setOpen(true)} sx={{ mr: 1, color: 'primary.main' }}>
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-              BDG & PODS Analytics
+            <Typography
+              variant="h6"
+              noWrap
+              sx={{
+                flexGrow: 1,
+                fontWeight: 700,
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              BDG & PODS
             </Typography>
           </Toolbar>
         </AppBar>
@@ -191,9 +205,12 @@ export default function AppLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, md: 3 },
+          p: { xs: 1.5, sm: 2, md: 3 },
           mt: { xs: 8, md: 0 },
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          maxWidth: '100%',
+          minWidth: 0,
+          overflowX: 'hidden',
           bgcolor: 'background.default',
           minHeight: '100vh',
         }}

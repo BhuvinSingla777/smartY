@@ -18,10 +18,13 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -51,6 +54,8 @@ const emptyDaily = {
 };
 
 export default function PodDetailPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { id } = useParams<{ id: string }>();
   const [pod, setPod] = useState<Record<string, unknown> | null>(null);
   const [history, setHistory] = useState<Array<Record<string, unknown>>>([]);
@@ -173,7 +178,7 @@ export default function PodDetailPage() {
         title={String(pod.name)}
         subtitle={String(pod.description ?? '')}
         action={
-          <Button variant="contained" onClick={openCreate}>
+          <Button variant="contained" onClick={openCreate} fullWidth={isMobile}>
             Add Daily Update
           </Button>
         }
@@ -199,10 +204,18 @@ export default function PodDetailPage() {
                   key={String(label)}
                   direction="row"
                   justifyContent="space-between"
+                  gap={2}
                   sx={{ py: 0.75, borderBottom: '1px solid rgba(0,0,0,0.06)' }}
                 >
-                  <Typography color="text.secondary">{String(label)}</Typography>
-                  <Typography fontWeight={500}>{String(value ?? '—')}</Typography>
+                  <Typography color="text.secondary" sx={{ flexShrink: 0 }}>
+                    {String(label)}
+                  </Typography>
+                  <Typography
+                    fontWeight={500}
+                    sx={{ minWidth: 0, textAlign: 'right', wordBreak: 'break-word' }}
+                  >
+                    {String(value ?? '—')}
+                  </Typography>
                 </Stack>
               ))}
             </CardContent>
@@ -265,7 +278,8 @@ export default function PodDetailPage() {
               <Typography variant="h6" gutterBottom>
                 Daily Update Table
               </Typography>
-              <Table size="small">
+              <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
+              <Table size="small" sx={{ minWidth: 480 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
@@ -314,12 +328,19 @@ export default function PodDetailPage() {
                   )}
                 </TableBody>
               </Table>
+              </TableContainer>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        fullScreen={isMobile}
+      >
         <DialogTitle>
           {editDailyId ? 'Update Daily Entry' : 'Add Daily Update'}
         </DialogTitle>

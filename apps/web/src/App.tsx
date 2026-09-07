@@ -5,6 +5,8 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import BdgPage from './pages/bdg/BdgPage';
 import PodsPage from './pages/pods/PodsPage';
 import PodDetailPage from './pages/pods/PodDetailPage';
+import UploadsPage from './pages/uploads/UploadsPage';
+import ImportsPage, { ImportDetailPage } from './pages/imports/ImportsPage';
 import { theme } from './theme';
 
 export default function App() {
@@ -19,6 +21,9 @@ export default function App() {
             <Route path="/bdg" element={<BdgPage />} />
             <Route path="/pods" element={<PodsPage />} />
             <Route path="/pods/:id" element={<PodDetailPage />} />
+            <Route path="/uploads" element={<UploadsPage />} />
+            <Route path="/imports" element={<ImportsPage />} />
+            <Route path="/imports/:id" element={<ImportDetailPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
