@@ -76,14 +76,10 @@ const emptyForm = {
   periodEnd: '',
 };
 
-<<<<<<< HEAD:src/components/bdg/BdgPage.tsx
 export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }) {
-=======
-export default function BdgPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTabletDown = useMediaQuery(theme.breakpoints.down('md'));
->>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/bdg/BdgPage.tsx
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [regions, setRegions] = useState<
     Array<{ region: string; inbound: number; outbound: number; total: number }>
@@ -316,7 +312,6 @@ export default function BdgPage() {
 
   return (
     <Box>
-<<<<<<< HEAD:src/components/bdg/BdgPage.tsx
       {hideChrome ? (
         <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
           {exportActions}
@@ -328,25 +323,6 @@ export default function BdgPage() {
           action={exportActions}
         />
       )}
-=======
-      <PageHeader
-        title="BDG Dashboard"
-        subtitle="Lead performance by member and region"
-        action={
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-            <Button variant="outlined" onClick={() => download('csv')}>
-              Export CSV
-            </Button>
-            <Button variant="outlined" onClick={() => download('xlsx')}>
-              Export Excel
-            </Button>
-            <Button variant="contained" onClick={openCreate}>
-              Add Member
-            </Button>
-          </Stack>
-        }
-      />
->>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/bdg/BdgPage.tsx
 
       {error ? <ErrorState message={error} /> : null}
 

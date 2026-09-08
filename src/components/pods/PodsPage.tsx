@@ -86,13 +86,6 @@ const emptyForm = {
   integrationCompletion: 0,
 };
 
-<<<<<<< HEAD:src/components/pods/PodsPage.tsx
-export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolean }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
-=======
 const emptyDailyForm = {
   date: new Date().toISOString().slice(0, 10),
   feCompletion: 0,
@@ -100,12 +93,14 @@ const emptyDailyForm = {
   integrationCompletion: 0,
 };
 
-export default function PodsPage() {
+export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolean }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTabletDown = useMediaQuery(theme.breakpoints.down('md'));
-  const [summary, setSummary] = useState<Record<string, number> | null>(null);
->>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/pods/PodsPage.tsx
+  const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
   const [status, setStatus] = useState<Array<{ status: string; count: number }>>([]);
   const [completion, setCompletion] = useState<Array<Record<string, unknown>>>([]);
   const [allPods, setAllPods] = useState<Array<Record<string, unknown>>>([]);
@@ -356,7 +351,6 @@ export default function PodsPage() {
 
   return (
     <Box>
-<<<<<<< HEAD:src/components/pods/PodsPage.tsx
       {error ? <ErrorState message={error} /> : null}
 
       {view === 'board' && !reportsOnly ? (
@@ -418,19 +412,6 @@ export default function PodsPage() {
             Export Excel
           </Button>
           {reportsOnly ? null : (
-=======
-      <PageHeader
-        title="PODS Dashboard"
-        subtitle="Completion tracking across PODs"
-        action={
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-            <Button variant="outlined" onClick={() => download('csv')}>
-              Export CSV
-            </Button>
-            <Button variant="outlined" onClick={() => download('xlsx')}>
-              Export Excel
-            </Button>
->>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/pods/PodsPage.tsx
             <Button variant="contained" onClick={openCreate}>
               Add POD
             </Button>

@@ -59,14 +59,10 @@ const emptyDaily = {
 };
 
 export default function PodDetailPage() {
-<<<<<<< HEAD:src/components/pods/PodDetailPage.tsx
   const params = useParams();
   const id = typeof params.id === 'string' ? params.id : undefined;
-=======
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { id } = useParams<{ id: string }>();
->>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/pods/PodDetailPage.tsx
   const [pod, setPod] = useState<Record<string, unknown> | null>(null);
   const [history, setHistory] = useState<Array<Record<string, unknown>>>([]);
   const [error, setError] = useState('');
