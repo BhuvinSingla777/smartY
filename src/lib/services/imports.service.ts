@@ -489,6 +489,66 @@ export class ImportsService {
     return job;
   }
 
+  async recordSheetImport(opts: {
+    module: ReportModule;
+    fileName?: string | null;
+    created: number;
+    updated: number;
+    skipped: number;
+    recordsFound: number;
+    summary: string;
+    warningCount?: number;
+  }) {
+    const originalName = (opts.fileName || 'sheet-import.xlsx').replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180);
+    const ext = originalName.split('.').pop()?.toLowerCase();
+    const format =
+      ext === 'csv'
+        ? FileFormat.CSV
+        : ext === 'xls'
+          ? FileFormat.XLS
+          : ext === 'xlsx'
+            ? FileFormat.XLSX
+            : ext === 'doc'
+              ? FileFormat.DOC
+              : ext === 'docx'
+                ? FileFormat.DOCX
+                : ext === 'pdf'
+                  ? FileFormat.PDF
+                  : FileFormat.XLSX;
+
+    const upload = await prisma.upload.create({
+      data: {
+        originalName,
+        storedName: `virtual-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        mimeType: 'application/octet-stream',
+        format,
+        sizeBytes: 0,
+        module: opts.module,
+        status: UploadStatus.PARSED,
+      },
+    });
+
+    return prisma.importJob.create({
+      data: {
+        uploadId: upload.id,
+        module: opts.module,
+        status: ImportStatus.COMMITTED,
+        recordsFound: opts.recordsFound,
+        recordsValid: opts.created + opts.updated,
+        recordsCreated: opts.created,
+        recordsUpdated: opts.updated,
+        recordsSkipped: opts.skipped,
+        warningCount: opts.warningCount ?? 0,
+        summary: opts.summary,
+        committedAt: new Date(),
+      },
+      include: {
+        upload: true,
+        committedBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+  }
+
   private serializeParsedSheets(sheets: ParsedSheet[]): ParsedSheet[] {
     return sheets.map((sheet) => {
       const headers = uniquifyHeaders(sheet.headers);

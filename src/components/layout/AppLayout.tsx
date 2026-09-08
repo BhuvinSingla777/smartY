@@ -25,24 +25,24 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
 import AppsIcon from '@mui/icons-material/Apps';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import NewReleasesOutlinedIcon from '@mui/icons-material/NewReleasesOutlined';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import { SIDEBAR_BG } from '@/lib/theme';
+import { SIDEBAR_BG, SIDEBAR_BG_END } from '@/lib/theme';
 
 const DRAWER_WIDTH = 248;
 
 const navItems = [
-  { label: 'Backlog', path: '/uploads', icon: <ViewListIcon fontSize="small" /> },
-  { label: 'Board', path: '/pods', icon: <ViewKanbanIcon fontSize="small" /> },
-  { label: 'Reports', path: '/dashboard', icon: <AssessmentIcon fontSize="small" /> },
-  { label: 'Releases', path: '/imports', icon: <NewReleasesOutlinedIcon fontSize="small" /> },
-  { label: 'Issues', path: '/bdg', icon: <AssignmentOutlinedIcon fontSize="small" /> },
+  { label: 'Dashboard', path: '/dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
+  { label: 'PODS', path: '/pods', icon: <ViewKanbanIcon fontSize="small" /> },
+  { label: 'BDG', path: '/bdg', icon: <AssignmentOutlinedIcon fontSize="small" /> },
+  { label: 'Import', path: '/uploads', icon: <CloudUploadIcon fontSize="small" /> },
+  { label: 'History', path: '/imports', icon: <HistoryOutlinedIcon fontSize="small" /> },
 ];
 
 function NavDrawerContent({
@@ -63,8 +63,10 @@ function NavDrawerContent({
         flexDirection: 'column',
         height: '100%',
         bgcolor: SIDEBAR_BG,
-        color: '#DEEBFF',
-        backgroundImage: 'linear-gradient(180deg, #0B3A82 0%, #072A66 100%)',
+        color: '#0A454C',
+        backgroundImage: `linear-gradient(180deg, ${SIDEBAR_BG} 0%, ${SIDEBAR_BG_END} 100%)`,
+        borderRight: '1px solid',
+        borderColor: '#B7E6EC',
       }}
     >
       <Box sx={{ px: 1.5, pt: 1.75, pb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -73,19 +75,19 @@ function NavDrawerContent({
             width: 34,
             height: 34,
             borderRadius: 1.25,
-            bgcolor: 'rgba(255,255,255,0.14)',
+            bgcolor: 'rgba(31, 138, 150, 0.12)',
             display: 'grid',
             placeItems: 'center',
           }}
         >
-          <DiamondOutlinedIcon sx={{ color: '#fff', fontSize: 20 }} />
+          <DiamondOutlinedIcon sx={{ color: '#1F8A96', fontSize: 20 }} />
         </Box>
         <Box sx={{ flexGrow: 1 }} />
         <Tooltip title="Create">
           <IconButton
             size="small"
             onClick={(e) => setCreateAnchor(e.currentTarget)}
-            sx={{ color: '#fff' }}
+            sx={{ color: '#0F5E68' }}
           >
             <AddIcon fontSize="small" />
           </IconButton>
@@ -94,7 +96,7 @@ function NavDrawerContent({
           <IconButton
             size="small"
             onClick={(e) => setAppsAnchor(e.currentTarget)}
-            sx={{ color: '#fff' }}
+            sx={{ color: '#0F5E68' }}
           >
             <AppsIcon fontSize="small" />
           </IconButton>
@@ -120,7 +122,7 @@ function NavDrawerContent({
               router.push('/uploads');
             }}
           >
-            Upload workbook
+            Import workbook
           </MenuItem>
         </Menu>
         <Menu anchorEl={appsAnchor} open={Boolean(appsAnchor)} onClose={() => setAppsAnchor(null)}>
@@ -154,10 +156,10 @@ function NavDrawerContent({
           <RocketLaunchIcon sx={{ color: '#fff', fontSize: 20 }} />
         </Box>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#fff', lineHeight: 1.2 }} noWrap>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#0A454C', lineHeight: 1.2 }} noWrap>
             BDG & PODS
           </Typography>
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <Typography variant="caption" sx={{ color: '#4A6B70' }}>
             Software project
           </Typography>
         </Box>
@@ -180,12 +182,13 @@ function NavDrawerContent({
                 mb: 0.25,
                 py: 0.75,
                 borderRadius: 1.5,
-                color: selected ? '#fff' : 'rgba(255,255,255,0.82)',
+                color: selected ? '#0A454C' : '#0F5E68',
                 '&.Mui-selected': {
-                  bgcolor: 'rgba(255,255,255,0.18)',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' },
+                  bgcolor: '#FFFFFF',
+                  boxShadow: '0 0 0 1px #B7E6EC',
+                  '&:hover': { bgcolor: '#FFFFFF' },
                 },
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.55)' },
               }}
             >
               <ListItemIcon sx={{ minWidth: 34, color: 'inherit' }}>{item.icon}</ListItemIcon>
@@ -305,6 +308,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           p: { xs: 2, md: 3 },
           pt: { xs: 10, md: 3 },
           mt: 0,

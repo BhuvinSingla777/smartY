@@ -17,6 +17,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  LinearProgress,
   Link,
   ListItemText,
   MenuItem,
@@ -61,7 +62,6 @@ import { podsApi } from '@/lib/endpoints';
 import {
   EmptyState,
   ErrorState,
-  KpiCard,
   LoadingState,
   PageHeader,
 } from '@/components/common/Common';
@@ -69,6 +69,75 @@ import { POD_BRANCHES, formatPodBranch } from '@/lib/shared';
 import ReportSourceSelect from '@/components/reports/ReportSourceSelect';
 
 const PIE_COLORS = ['#0052CC', '#4C9AFF', '#FFAB00', '#36B37E', '#6554C0', '#6B778C'];
+
+const summaryHeadSx = {
+  '& .MuiTableCell-head': {
+    bgcolor: '#F4F5F7',
+    color: 'text.secondary',
+    fontSize: 12,
+    fontWeight: 700,
+    whiteSpace: 'nowrap',
+  },
+};
+
+function asNumber(value: unknown) {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function shareOf(count: number, total: number) {
+  if (!total) return 0;
+  return Math.round((count / total) * 1000) / 10;
+}
+
+function PercentCell({
+  value,
+  emphasize = false,
+  compact = false,
+}: {
+  value: unknown;
+  emphasize?: boolean;
+  compact?: boolean;
+}) {
+  const n = asNumber(value);
+  if (compact) {
+    return (
+      <Typography variant="body2" sx={{ fontWeight: emphasize ? 700 : 600 }}>
+        {n}%
+      </Typography>
+    );
+  }
+  return (
+    <Stack
+      direction="row"
+      spacing={1.25}
+      alignItems="center"
+      justifyContent="flex-end"
+      sx={{ minWidth: 128 }}
+    >
+      <LinearProgress
+        variant="determinate"
+        value={Math.max(0, Math.min(100, n))}
+        sx={{
+          flex: 1,
+          height: 6,
+          borderRadius: 99,
+          bgcolor: '#EBECF0',
+          '& .MuiLinearProgress-bar': {
+            borderRadius: 99,
+            bgcolor: n >= 75 ? '#36B37E' : n >= 40 ? '#FFAB00' : '#FF5630',
+          },
+        }}
+      />
+      <Typography
+        variant="body2"
+        sx={{ minWidth: 52, textAlign: 'right', fontWeight: emphasize ? 700 : 600 }}
+      >
+        {n}%
+      </Typography>
+    </Stack>
+  );
+}
 
 const POD_STATUSES = ['Not Started', 'In Progress', 'Completed', 'On Hold', 'Blocked'];
 
@@ -343,6 +412,39 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
 
   const boardPods = allPods.length ? allPods : rows;
 
+  const totalPods = asNumber(summary.totalPods);
+  const inProgressCount = asNumber(summary.inProgress);
+  const completedCount = asNumber(summary.completed);
+  const notStartedCount = asNumber(summary.notStarted);
+  const otherStatusCount = Math.max(
+    0,
+    totalPods - inProgressCount - completedCount - notStartedCount,
+  );
+  const statusOverview = [
+    { label: 'Total PODs', count: totalPods, share: 100, total: true },
+    { label: 'In Progress', count: inProgressCount, share: shareOf(inProgressCount, totalPods) },
+    { label: 'Completed', count: completedCount, share: shareOf(completedCount, totalPods) },
+    { label: 'Not Started', count: notStartedCount, share: shareOf(notStartedCount, totalPods) },
+    ...(otherStatusCount
+      ? [
+          {
+            label: 'Other',
+            count: otherStatusCount,
+            share: shareOf(otherStatusCount, totalPods),
+          },
+        ]
+      : []),
+  ];
+  const completionOverview = [
+    { label: 'Frontend (FE)', value: summary.avgFeCompletion },
+    { label: 'Backend (BE)', value: summary.avgBeCompletion },
+    { label: 'Integration', value: summary.avgIntegrationCompletion },
+    { label: 'Overall', value: summary.overallAverageCompletion, emphasize: true },
+  ];
+  const branchRows = Array.isArray(summary.byBranch)
+    ? (summary.byBranch as Array<Record<string, unknown>>)
+    : [];
+
   return (
     <Box>
       {error ? <ErrorState message={error} /> : null}
@@ -372,14 +474,12 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
         <>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
+        justifyContent={reportsOnly ? 'flex-end' : 'space-between'}
         alignItems={{ sm: 'center' }}
         spacing={1.5}
         sx={{ mb: 2 }}
       >
-        {reportsOnly ? (
-          <Box />
-        ) : (
+        {reportsOnly ? null : (
           <ToggleButtonGroup
             exclusive
             size="small"
@@ -425,58 +525,192 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
         <ReportSourceSelect
           value="pods"
           onChange={(next) => {
+            if (next === 'dashboard') router.push('/dashboard');
             if (next === 'bdg') router.push('/dashboard?source=bdg');
           }}
         />
       )}
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        {[
-          ['Total PODs', summary.totalPods],
-          ['In Progress', summary.inProgress],
-          ['Completed', summary.completed],
-          ['Not Started', summary.notStarted],
-          ['Average FE %', `${summary.avgFeCompletion}%`],
-          ['Average BE %', `${summary.avgBeCompletion}%`],
-          ['Average Integration %', `${summary.avgIntegrationCompletion}%`],
-          ['Overall Average %', `${summary.overallAverageCompletion}%`],
-        ].map(([label, value]) => (
-          <Grid item xs={12} sm={6} md={3} key={String(label)}>
-            <KpiCard label={String(label)} value={value as string | number} />
-          </Grid>
-        ))}
-      </Grid>
-
-      {Array.isArray(summary.byBranch) ? (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          {(summary.byBranch as Array<Record<string, unknown>>).map((row) => (
-            <Grid item xs={12} sm={6} md={3} key={String(row.branch)}>
-              <KpiCard
-                label={`${formatPodBranch(String(row.branch))} PODs`}
-                value={Number(row.totalPods ?? 0)}
-              />
-            </Grid>
-          ))}
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 1 }}>
-                  PODs by Branch
-                </Typography>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={summary.byBranch as Array<Record<string, unknown>>}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="branch" tickFormatter={(v) => formatPodBranch(String(v))} />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip labelFormatter={(v) => formatPodBranch(String(v))} />
-                    <Bar dataKey="totalPods" fill="#0052CC" name="PODs" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
+        <Grid item xs={12} md={6} sx={{ minWidth: 0 }}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+              <Typography variant="h6" sx={{ px: 2, pt: 2, pb: 1 }}>
+                Status overview
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ ...summaryHeadSx, width: '100%' }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Status</TableCell>
+                      <TableCell align="right">Count</TableCell>
+                      <TableCell align="right">Share</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {statusOverview.map((row) => (
+                      <TableRow
+                        key={row.label}
+                        sx={row.total ? { bgcolor: 'rgba(11,61,92,0.06)' } : undefined}
+                      >
+                        <TableCell sx={{ fontWeight: row.total ? 700 : 500 }}>
+                          {row.label}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: row.total ? 700 : 600 }}>
+                          {row.count}
+                        </TableCell>
+                        <TableCell align="right">{row.share}%</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
         </Grid>
-      ) : null}
+
+        <Grid item xs={12} md={6} sx={{ minWidth: 0 }}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+              <Typography variant="h6" sx={{ px: 2, pt: 2, pb: 1 }}>
+                Completion averages
+              </Typography>
+              <TableContainer>
+                <Table size="small" sx={{ ...summaryHeadSx, width: '100%' }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Metric</TableCell>
+                      <TableCell align="right">Average</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {completionOverview.map((row) => (
+                      <TableRow
+                        key={row.label}
+                        sx={row.emphasize ? { bgcolor: 'rgba(11,61,92,0.06)' } : undefined}
+                      >
+                        <TableCell sx={{ fontWeight: row.emphasize ? 700 : 500 }}>
+                          {row.label}
+                        </TableCell>
+                        <TableCell align="right">
+                          <PercentCell value={row.value} emphasize={row.emphasize} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {branchRows.length ? (
+          <>
+            <Grid item xs={12} lg={7} sx={{ minWidth: 0 }}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                  <Typography variant="h6" sx={{ px: 2, pt: 2, pb: 1 }}>
+                    Branch performance
+                  </Typography>
+                  <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+                    <Table size="small" sx={{ ...summaryHeadSx, minWidth: 640, width: '100%' }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Branch</TableCell>
+                          <TableCell align="right">PODs</TableCell>
+                          <TableCell align="right">In Progress</TableCell>
+                          <TableCell align="right">Completed</TableCell>
+                          <TableCell align="right">FE %</TableCell>
+                          <TableCell align="right">BE %</TableCell>
+                          <TableCell align="right">Integration %</TableCell>
+                          <TableCell align="right">Overall %</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {branchRows.map((row) => {
+                          const branchKey = String(row.branch ?? '');
+                          return (
+                            <TableRow
+                              key={branchKey}
+                              hover
+                              selected={branchFilter === branchKey}
+                              onClick={() =>
+                                applyBranchFilter(branchFilter === branchKey ? '' : branchKey)
+                              }
+                              sx={{ cursor: 'pointer' }}
+                            >
+                              <TableCell sx={{ fontWeight: 600 }}>
+                                {formatPodBranch(branchKey)}
+                              </TableCell>
+                              <TableCell align="right">{asNumber(row.totalPods)}</TableCell>
+                              <TableCell align="right">{asNumber(row.inProgress)}</TableCell>
+                              <TableCell align="right">{asNumber(row.completed)}</TableCell>
+                              <TableCell align="right">
+                                <PercentCell value={row.avgFeCompletion} compact />
+                              </TableCell>
+                              <TableCell align="right">
+                                <PercentCell value={row.avgBeCompletion} compact />
+                              </TableCell>
+                              <TableCell align="right">
+                                <PercentCell value={row.avgIntegrationCompletion} compact />
+                              </TableCell>
+                              <TableCell align="right">
+                                <PercentCell value={row.overallAverageCompletion} emphasize compact />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        <TableRow sx={{ bgcolor: 'rgba(11,61,92,0.06)' }}>
+                          <TableCell sx={{ fontWeight: 700 }}>All branches</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700 }}>
+                            {totalPods}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700 }}>
+                            {inProgressCount}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700 }}>
+                            {completedCount}
+                          </TableCell>
+                          <TableCell align="right">
+                            <PercentCell value={summary.avgFeCompletion} compact />
+                          </TableCell>
+                          <TableCell align="right">
+                            <PercentCell value={summary.avgBeCompletion} compact />
+                          </TableCell>
+                          <TableCell align="right">
+                            <PercentCell value={summary.avgIntegrationCompletion} compact />
+                          </TableCell>
+                          <TableCell align="right">
+                            <PercentCell value={summary.overallAverageCompletion} emphasize compact />
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} lg={5} sx={{ minWidth: 0 }}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 1 }}>
+                    PODs by branch
+                  </Typography>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={branchRows}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="branch" tickFormatter={(v) => formatPodBranch(String(v))} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip labelFormatter={(v) => formatPodBranch(String(v))} />
+                      <Bar dataKey="totalPods" fill="#0052CC" name="PODs" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+          </>
+        ) : null}
+      </Grid>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
@@ -763,7 +997,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
         </Grid>
       </Grid>
 
-      <Card>
+      <Card sx={{ overflow: 'hidden' }}>
         <CardContent>
           <Stack
             direction={{ xs: 'column', md: 'row' }}

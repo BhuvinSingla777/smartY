@@ -46,6 +46,7 @@ export const podsApi = {
     selectedIndexes?: number[],
     sheets?: Array<{ name?: string; headers: string[]; rows: Record<string, unknown>[] }>,
     defaultBranch?: string | null,
+    fileName?: string | null,
   ) =>
     (
       await api.post('/pods/from-sheet', {
@@ -53,6 +54,7 @@ export const podsApi = {
         sheets,
         selectedIndexes,
         defaultBranch,
+        fileName,
       })
     ).data,
   update: async (id: string, body: Record<string, unknown>) =>

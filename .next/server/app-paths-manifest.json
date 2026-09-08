@@ -1,9 +1,13 @@
 {
-  "/api/pods/completion/route": "app/api/pods/completion/route.js",
-  "/api/pods/route": "app/api/pods/route.js",
   "/api/pods/summary/route": "app/api/pods/summary/route.js",
-  "/api/pods/[id]/history/route": "app/api/pods/[id]/history/route.js",
   "/api/pods/status/route": "app/api/pods/status/route.js",
+  "/api/pods/route": "app/api/pods/route.js",
+  "/api/imports/route": "app/api/imports/route.js",
+  "/api/pods/completion/route": "app/api/pods/completion/route.js",
+  "/api/dashboard/summary/route": "app/api/dashboard/summary/route.js",
+  "/(dashboard)/imports/page": "app/(dashboard)/imports/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/bdg/page": "app/(dashboard)/bdg/page.js",
   "/(dashboard)/uploads/page": "app/(dashboard)/uploads/page.js",
   "/(dashboard)/pods/page": "app/(dashboard)/pods/page.js"
 }

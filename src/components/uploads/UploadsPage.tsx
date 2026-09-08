@@ -135,6 +135,7 @@ export default function UploadsPage() {
           undefined,
           extracted,
           defaultBranch || null,
+          result.fileName ?? nextFile.name,
         );
         setSaveResult({
           summary: saved.summary,
@@ -184,8 +185,8 @@ export default function UploadsPage() {
   return (
     <Box>
       <PageHeader
-        title="Backlog"
-        subtitle="Drop PODS.xlsx. A clean extract updates this view and writes the same rows to the database."
+        title="Import"
+        subtitle="Import a PODS workbook to extract rows and save them to the database."
       />
 
       <Card sx={{ mb: 3 }}>
@@ -257,6 +258,9 @@ export default function UploadsPage() {
       {saveResult ? (
         <Alert severity="success" sx={{ mb: 3 }}>
           Database updated: {saveResult.summary}.{' '}
+          <Button size="small" onClick={() => router.push('/imports')}>
+            Open History
+          </Button>
           <Button size="small" onClick={() => router.push('/pods')}>
             Open PODS
           </Button>

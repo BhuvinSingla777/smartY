@@ -49,13 +49,13 @@ export default function ImportsPage() {
   return (
     <Box>
       <PageHeader
-        title="Releases"
-        subtitle="Track previewed and committed imports"
+        title="History"
+        subtitle="History of files imported into PODS and BDG"
       />
       <Card>
         <CardContent>
           {rows.length === 0 ? (
-            <EmptyState title="No imports yet" description="Upload a report to create an import job." />
+            <EmptyState title="No imports yet" description="Use Import to upload a workbook. Each save creates a history record here." />
           ) : (
             <>
               <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
