@@ -1,6 +1,6 @@
-# BDG & PODS Analytics Dashboard
+# smartY
 
-Single **Next.js 15** App Router app for uploading, validating, importing, and visualizing **BDG** lead reports and **PODS** completion reports. Deploy on **Vercel**.
+BDG & PODS Analytics Dashboard. Single **Next.js 15** App Router app for uploading, validating, importing, and visualizing **BDG** lead reports and **PODS** completion reports. Deploy on **Vercel**.
 
 ## Folder structure
 
