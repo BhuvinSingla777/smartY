@@ -9,17 +9,18 @@ import {
   ALLOWED_MIME_TYPES,
 } from '@/lib/parsers/file-parser.interface';
 import type { UploadedFile } from '@/lib/http';
+import { env } from '@/lib/env';
 
 function getUploadDir() {
-  if (process.env.VERCEL) {
+  if (env('VERCEL')) {
     return '/tmp/uploads';
   }
-  return path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? './uploads');
+  return path.resolve(process.cwd(), env('UPLOAD_DIR') || './uploads');
 }
 
 export class UploadsService {
   private readonly maxBytes =
-    Number(process.env.MAX_UPLOAD_SIZE_MB ?? 20) * 1024 * 1024;
+    Number(env('MAX_UPLOAD_SIZE_MB') || 20) * 1024 * 1024;
 
   private get uploadDir() {
     const dir = getUploadDir();

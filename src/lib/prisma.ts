@@ -1,4 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import { env, loadAppEnv } from '@/lib/env';
+
+loadAppEnv();
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -45,7 +48,7 @@ export function resolveDatabaseUrls(databaseUrl: string, directUrl?: string) {
 }
 
 function readEnv(name: string) {
-  return (process.env[name] ?? '').trim();
+  return env(name);
 }
 
 function rawDatabaseUrl() {
@@ -65,7 +68,7 @@ function ensureDatabaseEnv() {
   const raw = rawDatabaseUrl();
   if (!raw) {
     throw new Error(
-      'DATABASE_URL is missing or empty. Add the Supabase pooler URL in Vercel → Settings → Environment Variables (Production and Preview), then redeploy.',
+      'DATABASE_URL is missing. Set it in the project `.env` file (local) or in Vercel Environment Variables (production).',
     );
   }
   const resolved = resolveDatabaseUrls(raw, rawDirectUrl());
