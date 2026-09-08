@@ -2,17 +2,63 @@ import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-function databaseUrl() {
-  return process.env.DATABASE_URL?.trim() ?? '';
+function withQuery(raw: string, extra: Record<string, string>) {
+  const [base, existing] = raw.split('?');
+  const params = new URLSearchParams(existing ?? '');
+  for (const [key, value] of Object.entries(extra)) {
+    if (!params.has(key)) params.set(key, value);
+  }
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+function withoutParams(raw: string, keys: string[]) {
+  const [base, existing] = raw.split('?');
+  const params = new URLSearchParams(existing ?? '');
+  for (const key of keys) params.delete(key);
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+function toSessionPooler(raw: string) {
+  return withoutParams(
+    raw.replace(/pooler\.supabase\.com:6543/i, 'pooler.supabase.com:5432'),
+    ['pgbouncer', 'connection_limit'],
+  );
+}
+
+/** Accept a bare Supabase pooler URL and fill Prisma / pgbouncer / schema params. */
+export function resolveDatabaseUrls(databaseUrl: string, directUrl?: string) {
+  const trimmed = databaseUrl.trim();
+  const db = withQuery(trimmed, {
+    schema: 'bdg_pods',
+    sslmode: 'require',
+    ...(trimmed.includes(':6543')
+      ? { pgbouncer: 'true', connection_limit: '1' }
+      : {}),
+  });
+  const direct = withQuery(directUrl?.trim() || toSessionPooler(db), {
+    schema: 'bdg_pods',
+    sslmode: 'require',
+  });
+  return { databaseUrl: db, directUrl: direct };
+}
+
+function ensureDatabaseEnv() {
+  const raw = process.env.DATABASE_URL?.trim() ?? '';
+  if (!raw) {
+    throw new Error(
+      'DATABASE_URL is missing or empty. Add the Supabase pooler URL in Vercel → Settings → Environment Variables (Production and Preview), then redeploy.',
+    );
+  }
+  const resolved = resolveDatabaseUrls(raw, process.env.DIRECT_URL);
+  process.env.DATABASE_URL = resolved.databaseUrl;
+  process.env.DIRECT_URL = resolved.directUrl;
+  return resolved.databaseUrl;
 }
 
 function createPrismaClient() {
-  const url = databaseUrl();
-  if (!url) {
-    throw new Error(
-      'DATABASE_URL is missing or empty. Add the Supabase transaction pooler URL in Vercel → Settings → Environment Variables (Production and Preview), then redeploy.',
-    );
-  }
+  const url = ensureDatabaseEnv();
   return new PrismaClient({
     datasources: { db: { url } },
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
