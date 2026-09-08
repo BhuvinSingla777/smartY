@@ -56,26 +56,39 @@ npm run dev
 ## Environment
 
 ```text
-DATABASE_URL=
+DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1&sslmode=require&schema=bdg_pods
+DIRECT_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres?sslmode=require&schema=bdg_pods
+SUPABASE_URL=https://PROJECT_REF.supabase.co
 MAX_UPLOAD_SIZE_MB=20
 UPLOAD_DIR=./uploads
 ```
 
-On Vercel, set `DATABASE_URL` to a hosted Postgres URL (Neon, Supabase, or Railway). Prefer the connection pooler, and add `?pgbouncer=true` when using Prisma with a pooled URL.
+This app uses **Supabase Postgres** through Prisma. Tables live in the `bdg_pods` schema so they do not collide with other apps in the same project.
+
+Local: copy `.env.example` to `.env` with the pooler URLs, then:
+
+```bash
+npx prisma migrate deploy
+npm run db:seed
+npm run dev
+```
+
+On Vercel this is required at **runtime**. The build can succeed without it, then every PODS/BDG query fails with an empty `DATABASE_URL`.
+
+1. Vercel → Project → **Settings** → **Environment Variables**.
+2. Add `DATABASE_URL` (transaction pooler, port **6543**) and `DIRECT_URL` (session pooler, port **5432**). Enable **Production** and **Preview**.
+3. Redeploy. Then run migrations once against `DIRECT_URL`:
+
+```bash
+npx prisma migrate deploy
+```
 
 ## Deploy on Vercel
 
 1. Push this repo to GitHub.
-2. Import the project in Vercel (framework: **Next.js**). If the git repo is a parent folder, set the root directory to `bdg-pods-dashboard`.
-3. Add `DATABASE_URL` (and optionally `MAX_UPLOAD_SIZE_MB`).
+2. Import the project in Vercel (framework: **Next.js**).
+3. Set `DATABASE_URL` as described above.
 4. Deploy. Prisma Client is generated in `postinstall` and `build`.
-
-Run migrations against production Postgres:
-
-```bash
-DATABASE_URL="your-production-url" npx prisma migrate deploy
-DATABASE_URL="your-production-url" npm run db:seed
-```
 
 Vercel’s filesystem is ephemeral. Uploaded files go to `/tmp` on Vercel and `./uploads` locally. Import history and business data live in Postgres.
 
