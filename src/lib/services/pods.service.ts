@@ -211,7 +211,7 @@ export class PodsService {
       });
       const data = this.toPrismaData(candidate.dto, normalized);
       if (existing && !data.branch) {
-        data.branch = existing.branch;
+        data.branch = parsePodBranch(existing.branch);
       }
 
       if (existing) {

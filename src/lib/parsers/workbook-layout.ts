@@ -4,7 +4,6 @@ import {
   mapPodHeader,
   normalizePercentage,
   parseFlexibleDate,
-  serializeCell,
   uniquifyHeaders,
 } from '@/lib/shared';
 

@@ -1,4 +1,4 @@
-import { ReportModule } from '@prisma/client';
+import { Prisma, ReportModule } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ApiError } from '@/lib/errors';
 
@@ -28,10 +28,15 @@ export class QueriesService {
         module: input.module === 'BDG' ? ReportModule.BDG : ReportModule.PODS,
         search: String(input.search ?? '').trim(),
         status: String(input.status ?? '').trim(),
-        payload: input.payload ?? {
-          search: String(input.search ?? '').trim(),
-          status: String(input.status ?? '').trim(),
-        },
+        payload:
+          input.payload === undefined
+            ? ({
+                search: String(input.search ?? '').trim(),
+                status: String(input.status ?? '').trim(),
+              } as Prisma.InputJsonValue)
+            : input.payload === null
+              ? Prisma.JsonNull
+              : (input.payload as Prisma.InputJsonValue),
       },
     });
   }
@@ -46,7 +51,14 @@ export class QueriesService {
         ...(input.name !== undefined ? { name: String(input.name).trim() } : {}),
         ...(input.search !== undefined ? { search: String(input.search).trim() } : {}),
         ...(input.status !== undefined ? { status: String(input.status).trim() } : {}),
-        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        ...(input.payload !== undefined
+          ? {
+              payload:
+                input.payload === null
+                  ? Prisma.JsonNull
+                  : (input.payload as Prisma.InputJsonValue),
+            }
+          : {}),
       },
     });
   }

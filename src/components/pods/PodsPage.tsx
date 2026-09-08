@@ -57,7 +57,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { podsApi, queriesApi } from '@/lib/endpoints';
+import { podsApi } from '@/lib/endpoints';
 import {
   EmptyState,
   ErrorState,
@@ -133,12 +133,6 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
   const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [view, setView] = useState<'board' | 'reports'>(reportsOnly ? 'reports' : 'board');
-  const [savedQueries, setSavedQueries] = useState<
-    Array<{ id: string; name: string; search: string; status: string }>
-  >([]);
-  const [queryDialogOpen, setQueryDialogOpen] = useState(false);
-  const [queryName, setQueryName] = useState('');
-  const [queryBusy, setQueryBusy] = useState(false);
 
   const statusesParam = selectedStatuses.length ? selectedStatuses.join(',') : undefined;
   const idsParam = selectedPodIds.length ? selectedPodIds.join(',') : undefined;
