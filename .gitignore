@@ -1,17 +1,15 @@
 node_modules/
-.next/
+
 out/
 
-.env
-.env.local
+
 deploy.env
 *.log
 tmp/
 coverage/
-.DS_Store
+
 *.tsbuildinfo
-.vite/
-apps/api/uploads/
+
 apps/web/dist/
 packages/shared/dist/
 .vercel/
