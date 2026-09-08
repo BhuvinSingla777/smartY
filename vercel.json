@@ -1,4 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+<<<<<<< HEAD
   "framework": "nextjs"
+=======
+  "framework": "nestjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build -w @bdg-pods/shared && npm run build -w @bdg-pods/api"
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179
 }

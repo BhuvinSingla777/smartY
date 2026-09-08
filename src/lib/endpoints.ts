@@ -1,4 +1,8 @@
+<<<<<<< HEAD:src/lib/endpoints.ts
 import api from './api-client';
+=======
+import api, { API_BASE_URL } from './api';
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/services/endpoints.ts
 
 export const dashboardApi = {
   summary: async () => (await api.get('/dashboard/summary')).data,
@@ -19,7 +23,7 @@ export const bdgApi = {
   remove: async (id: string) => (await api.delete(`/bdg/${id}`)).data,
   exportUrl: (format: 'csv' | 'xlsx', params?: Record<string, string>) => {
     const q = new URLSearchParams({ format, ...params }).toString();
-    return `/api/bdg/export?${q}`;
+    return `${API_BASE_URL}/bdg/export?${q}`;
   },
 };
 
@@ -58,9 +62,30 @@ export const podsApi = {
   update: async (id: string, body: Record<string, unknown>) =>
     (await api.patch(`/pods/${id}`, body)).data,
   remove: async (id: string) => (await api.delete(`/pods/${id}`)).data,
+  upsertDaily: async (
+    id: string,
+    body: {
+      date: string;
+      feCompletion?: number | null;
+      beCompletion?: number | null;
+      integrationCompletion?: number | null;
+    },
+  ) => (await api.post(`/pods/${id}/daily`, body)).data,
+  updateDaily: async (
+    id: string,
+    dailyId: string,
+    body: {
+      date?: string;
+      feCompletion?: number | null;
+      beCompletion?: number | null;
+      integrationCompletion?: number | null;
+    },
+  ) => (await api.patch(`/pods/${id}/daily/${dailyId}`, body)).data,
+  removeDaily: async (id: string, dailyId: string) =>
+    (await api.delete(`/pods/${id}/daily/${dailyId}`)).data,
   exportUrl: (format: 'csv' | 'xlsx', params?: Record<string, string>) => {
     const q = new URLSearchParams({ format, ...params }).toString();
-    return `/api/pods/export?${q}`;
+    return `${API_BASE_URL}/pods/export?${q}`;
   },
   tasks: async (id: string) => (await api.get(`/pods/${id}/tasks`)).data,
   importTasks: async (id: string, file: File) => {

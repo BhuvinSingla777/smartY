@@ -3,12 +3,15 @@ node_modules/
 out/
 
 .env.local
-.env*.local
 deploy.env
 *.log
 tmp/
 coverage/
 .DS_Store
 *.tsbuildinfo
-.vercel
+.vite/
+apps/api/uploads/
+apps/web/dist/
+packages/shared/dist/
+.vercel/
 .~lock.*

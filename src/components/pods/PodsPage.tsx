@@ -34,6 +34,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -84,11 +86,26 @@ const emptyForm = {
   integrationCompletion: 0,
 };
 
+<<<<<<< HEAD:src/components/pods/PodsPage.tsx
 export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolean }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
+=======
+const emptyDailyForm = {
+  date: new Date().toISOString().slice(0, 10),
+  feCompletion: 0,
+  beCompletion: 0,
+  integrationCompletion: 0,
+};
+
+export default function PodsPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTabletDown = useMediaQuery(theme.breakpoints.down('md'));
+  const [summary, setSummary] = useState<Record<string, number> | null>(null);
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/pods/PodsPage.tsx
   const [status, setStatus] = useState<Array<{ status: string; count: number }>>([]);
   const [completion, setCompletion] = useState<Array<Record<string, unknown>>>([]);
   const [allPods, setAllPods] = useState<Array<Record<string, unknown>>>([]);
@@ -116,6 +133,8 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [dailyOpen, setDailyOpen] = useState(false);
+  const [dailyForm, setDailyForm] = useState(emptyDailyForm);
   const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [view, setView] = useState<'board' | 'reports'>(reportsOnly ? 'reports' : 'board');
@@ -285,10 +304,43 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
     }
   };
 
+  const openDailyCreate = () => {
+    const options = allPods.length ? allPods : rows;
+    const selected = options.find((p) => String(p.id) === historyPodId);
+    setDailyForm({
+      ...emptyDailyForm,
+      date: new Date().toISOString().slice(0, 10),
+      feCompletion: Number(selected?.feCompletion ?? 0),
+      beCompletion: Number(selected?.beCompletion ?? 0),
+      integrationCompletion: Number(selected?.integrationCompletion ?? 0),
+    });
+    setDailyOpen(true);
+  };
+
+  const saveDaily = async () => {
+    if (!historyPodId) return;
+    setBusy(true);
+    setError('');
+    try {
+      await podsApi.upsertDaily(historyPodId, dailyForm);
+      setDailyOpen(false);
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading && !summary) return <LoadingState />;
   if (error && !summary) return <ErrorState message={error} />;
   if (!summary) {
-    return <EmptyState title="No PODS data" description="Upload a PODS report to begin." />;
+    return (
+      <EmptyState
+        title="No PODS data"
+        description="Add a POD to begin tracking completion."
+      />
+    );
   }
 
   const historyChart = history.map((h) => ({
@@ -304,6 +356,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
 
   return (
     <Box>
+<<<<<<< HEAD:src/components/pods/PodsPage.tsx
       {error ? <ErrorState message={error} /> : null}
 
       {view === 'board' && !reportsOnly ? (
@@ -365,6 +418,19 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
             Export Excel
           </Button>
           {reportsOnly ? null : (
+=======
+      <PageHeader
+        title="PODS Dashboard"
+        subtitle="Completion tracking across PODs"
+        action={
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            <Button variant="outlined" onClick={() => download('csv')}>
+              Export CSV
+            </Button>
+            <Button variant="outlined" onClick={() => download('xlsx')}>
+              Export Excel
+            </Button>
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/pods/PodsPage.tsx
             <Button variant="contained" onClick={openCreate}>
               Add POD
             </Button>
@@ -448,7 +514,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                 sx={{ mb: 1 }}
               >
                 <Typography variant="h6">PODs by Status</Typography>
-                <FormControl size="small" sx={{ minWidth: 180 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 }, width: { xs: '100%', sm: 'auto' } }}>
                   <InputLabel>Status filter</InputLabel>
                   <Select
                     multiple
@@ -480,8 +546,8 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                     data={status}
                     dataKey="count"
                     nameKey="status"
-                    outerRadius={90}
-                    label
+                    outerRadius={isMobile ? 70 : 90}
+                    label={!isTabletDown}
                   >
                     {status.map((_, i) => (
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -498,7 +564,13 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
         <Grid item xs={12} md={8}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={1}
+                sx={{ mb: 1 }}
+              >
                 <Typography variant="h6">Completion by POD</Typography>
                 <TextField
                   select
@@ -506,7 +578,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                   label="Top N"
                   value={topN}
                   onChange={(e) => setTopN(Number(e.target.value))}
-                  sx={{ width: 100 }}
+                  sx={{ width: { xs: '100%', sm: 100 } }}
                 >
                   {[5, 10, 15, 20, 30].map((n) => (
                     <MenuItem key={n} value={n}>
@@ -515,11 +587,20 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                   ))}
                 </TextField>
               </Stack>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={completion} layout="vertical" margin={{ left: 100 }}>
+              <ResponsiveContainer width="100%" height={isMobile ? 240 : 260}>
+                <BarChart
+                  data={completion}
+                  layout="vertical"
+                  margin={{ left: isMobile ? 8 : 100, right: 8 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" domain={[0, 100]} />
-                  <YAxis type="category" dataKey="name" width={110} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={isMobile ? 72 : 110}
+                    tick={{ fontSize: isMobile ? 10 : 12 }}
+                  />
                   <Tooltip />
                   <Bar dataKey="overallCompletion" fill="#0052CC" name="Overall %" />
                 </BarChart>
@@ -583,11 +664,18 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                   </Button>
                 </Stack>
               </Stack>
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={completion}>
+              <ResponsiveContainer width="100%" height={isMobile ? 280 : 320}>
+                <BarChart data={completion} margin={{ bottom: isMobile ? 48 : 24 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" interval={0} angle={-20} textAnchor="end" height={70} />
-                  <YAxis domain={[0, 100]} />
+                  <XAxis
+                    dataKey="name"
+                    interval={isMobile ? 'preserveStartEnd' : 0}
+                    angle={isMobile ? -35 : -20}
+                    textAnchor="end"
+                    height={isMobile ? 90 : 70}
+                    tick={{ fontSize: isMobile ? 10 : 12 }}
+                  />
+                  <YAxis domain={[0, 100]} width={isMobile ? 32 : 40} />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="feCompletion" fill="#0052CC" name="FE %" />
@@ -617,7 +705,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                   label="Select POD"
                   value={historyPodId}
                   onChange={(e) => setHistoryPodId(e.target.value)}
-                  sx={{ minWidth: 220 }}
+                  sx={{ minWidth: { xs: '100%', md: 220 }, width: { xs: '100%', md: 'auto' } }}
                 >
                   {podOptions.map((r) => (
                     <MenuItem key={String(r.id)} value={String(r.id)}>
@@ -633,7 +721,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                   onChange={(e) =>
                     setHistoryRange(e.target.value as 'all' | 'daily' | 'weekly' | 'custom')
                   }
-                  sx={{ minWidth: 140 }}
+                  sx={{ minWidth: { xs: '100%', md: 140 }, width: { xs: '100%', md: 'auto' } }}
                 >
                   <MenuItem value="all">All</MenuItem>
                   <MenuItem value="daily">Daily</MenuItem>
@@ -649,6 +737,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
                       InputLabelProps={{ shrink: true }}
+                      sx={{ width: { xs: '100%', md: 'auto' } }}
                     />
                     <TextField
                       size="small"
@@ -657,12 +746,24 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
                       InputLabelProps={{ shrink: true }}
+                      sx={{ width: { xs: '100%', md: 'auto' } }}
                     />
                   </>
                 ) : null}
+                <Button
+                  variant="contained"
+                  disabled={!historyPodId}
+                  onClick={openDailyCreate}
+                  sx={{ width: { xs: '100%', md: 'auto' } }}
+                >
+                  Add Daily Update
+                </Button>
               </Stack>
               {historyChart.length === 0 ? (
-                <EmptyState title="No daily updates for this POD" />
+                <EmptyState
+                  title="No daily updates for this POD"
+                  description="Use Add Daily Update to record FE / BE / Integration % for a date."
+                />
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={historyChart}>
@@ -703,7 +804,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                 setPage(0);
                 setSearch(e.target.value);
               }}
-              sx={{ minWidth: 220 }}
+              sx={{ minWidth: { xs: '100%', md: 220 }, width: { xs: '100%', md: 'auto' } }}
             />
             <TextField
               select
@@ -714,7 +815,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                 setPage(0);
                 setStatusFilter(e.target.value);
               }}
-              sx={{ minWidth: 180 }}
+              sx={{ minWidth: { xs: '100%', md: 180 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="">All</MenuItem>
               {statusOptions.map((s) => (
@@ -747,7 +848,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
               size="small"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              sx={{ minWidth: 160 }}
+              sx={{ minWidth: { xs: '100%', md: 160 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="updatedAt">Last Updated</MenuItem>
               <MenuItem value="name">POD Name</MenuItem>
@@ -763,7 +864,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
               size="small"
               value={sortDir}
               onChange={(e) => setSortDir(e.target.value as 'asc' | 'desc')}
-              sx={{ minWidth: 120 }}
+              sx={{ minWidth: { xs: '100%', md: 120 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="desc">Desc</MenuItem>
               <MenuItem value="asc">Asc</MenuItem>
@@ -884,7 +985,13 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
         </>
       )}
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
         <DialogTitle>{editId ? 'Update POD' : 'Add POD'}</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: { xs: '60vh', sm: '70vh' } }}>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -1007,6 +1114,81 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
           <Button variant="contained" disabled={busy || !form.name.trim()} onClick={savePod}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={dailyOpen}
+        onClose={() => setDailyOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle>Add Daily Update</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              POD:{' '}
+              {String(
+                podOptions.find((p) => String(p.id) === historyPodId)?.name ?? '—',
+              )}
+            </Typography>
+            <TextField
+              label="Date"
+              type="date"
+              size="small"
+              fullWidth
+              value={dailyForm.date}
+              onChange={(e) => setDailyForm((f) => ({ ...f, date: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="FE Completion %"
+              type="number"
+              size="small"
+              fullWidth
+              inputProps={{ min: 0, max: 100 }}
+              value={dailyForm.feCompletion}
+              onChange={(e) =>
+                setDailyForm((f) => ({ ...f, feCompletion: Number(e.target.value) }))
+              }
+            />
+            <TextField
+              label="BE Completion %"
+              type="number"
+              size="small"
+              fullWidth
+              inputProps={{ min: 0, max: 100 }}
+              value={dailyForm.beCompletion}
+              onChange={(e) =>
+                setDailyForm((f) => ({ ...f, beCompletion: Number(e.target.value) }))
+              }
+            />
+            <TextField
+              label="Integration Completion %"
+              type="number"
+              size="small"
+              fullWidth
+              inputProps={{ min: 0, max: 100 }}
+              value={dailyForm.integrationCompletion}
+              onChange={(e) =>
+                setDailyForm((f) => ({
+                  ...f,
+                  integrationCompletion: Number(e.target.value),
+                }))
+              }
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDailyOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={busy || !historyPodId || !dailyForm.date}
+            onClick={saveDaily}
+          >
             Save
           </Button>
         </DialogActions>

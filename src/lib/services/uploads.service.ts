@@ -1,5 +1,4 @@
 import { FileFormat, ReportModule, UploadStatus } from '@prisma/client';
-import * as fs from 'fs';
 import * as path from 'path';
 import { prisma } from '@/lib/prisma';
 import { ApiError } from '@/lib/errors';
@@ -17,6 +16,7 @@ function getUploadDir() {
   return path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? './uploads');
 }
 
+<<<<<<< HEAD:src/lib/services/uploads.service.ts
 export class UploadsService {
   private readonly maxBytes =
     Number(process.env.MAX_UPLOAD_SIZE_MB ?? 20) * 1024 * 1024;
@@ -30,13 +30,54 @@ export class UploadsService {
   }
 
   async create(file: UploadedFile, module: ReportModule, userId?: string | null) {
+=======
+/** Vercel serverless request body hard limit is ~4.5MB; stay under with headroom. */
+export const VERCEL_SAFE_UPLOAD_MB = 4;
+
+@Injectable()
+export class UploadsService {
+  private readonly maxBytes: number;
+  private readonly maxMb: number;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly parser: ParserService,
+    private readonly config: ConfigService,
+  ) {
+    const configured = Number(this.config.get('MAX_UPLOAD_SIZE_MB'));
+    this.maxMb = Number.isFinite(configured) && configured > 0
+      ? Math.min(configured, VERCEL_SAFE_UPLOAD_MB)
+      : VERCEL_SAFE_UPLOAD_MB;
+    this.maxBytes = this.maxMb * 1024 * 1024;
+  }
+
+  /**
+   * Validate the in-memory file and record metadata only.
+   * Does NOT write the file to disk (Vercel-safe).
+   */
+  async create(
+    file: Express.Multer.File,
+    module: ReportModule,
+    userId?: string | null,
+  ) {
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/api/src/modules/uploads/uploads.service.ts
     if (!file) {
       throw new ApiError(400, 'No file uploaded');
     }
+    if (!file.buffer?.length) {
+      throw new BadRequestException(
+        'Empty file buffer. Uploads must be processed in memory.',
+      );
+    }
     if (file.size > this.maxBytes) {
+<<<<<<< HEAD:src/lib/services/uploads.service.ts
       throw new ApiError(
         400,
         `File exceeds maximum size of ${this.maxBytes / (1024 * 1024)} MB`,
+=======
+      throw new BadRequestException(
+        `File exceeds maximum size of ${this.maxMb} MB (Vercel limit). Compress or split the report.`,
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/api/src/modules/uploads/uploads.service.ts
       );
     }
 
@@ -59,12 +100,20 @@ export class UploadsService {
       );
     }
 
+<<<<<<< HEAD:src/lib/services/uploads.service.ts
     const format = parserService.detect(sanitized, file.mimetype || '');
     const storedName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${sanitized}`;
     const fullPath = path.join(this.uploadDir, storedName);
     fs.writeFileSync(fullPath, file.buffer);
 
     return prisma.upload.create({
+=======
+    const format = this.parser.detect(sanitized, file.mimetype || '');
+    // Metadata-only token — file bytes are never persisted on the serverless FS.
+    const storedName = `memory://${Date.now()}-${sanitized}`;
+
+    return this.prisma.upload.create({
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/api/src/modules/uploads/uploads.service.ts
       data: {
         originalName: sanitized,
         storedName,
@@ -115,16 +164,21 @@ export class UploadsService {
     return upload;
   }
 
-  getFilePath(storedName: string): string {
-    return path.join(this.uploadDir, storedName);
+  getMaxBytes() {
+    return this.maxBytes;
   }
 
+<<<<<<< HEAD:src/lib/services/uploads.service.ts
   readFile(storedName: string): Buffer {
     const fullPath = this.getFilePath(storedName);
     if (!fs.existsSync(fullPath)) {
       throw new ApiError(404, 'Uploaded file missing on disk');
     }
     return fs.readFileSync(fullPath);
+=======
+  getMaxMb() {
+    return this.maxMb;
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/api/src/modules/uploads/uploads.service.ts
   }
 
   private sanitizeFilename(name: string): string {

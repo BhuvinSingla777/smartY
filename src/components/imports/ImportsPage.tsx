@@ -11,6 +11,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
@@ -57,7 +58,8 @@ export default function ImportsPage() {
             <EmptyState title="No imports yet" description="Upload a report to create an import job." />
           ) : (
             <>
-              <Table size="small">
+              <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
+                <Table size="small" sx={{ minWidth: 900 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>File Name</TableCell>
@@ -122,6 +124,7 @@ export default function ImportsPage() {
                   })}
                 </TableBody>
               </Table>
+              </TableContainer>
               <TablePagination
                 component="div"
                 count={total}
@@ -137,3 +140,73 @@ export default function ImportsPage() {
     </Box>
   );
 }
+<<<<<<< HEAD:src/components/imports/ImportsPage.tsx
+=======
+
+export function ImportDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [job, setJob] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    importsApi
+      .get(id)
+      .then(setJob)
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState message={error} />;
+  if (!job) return <EmptyState title="Import not found" />;
+
+  const upload = job.upload as Record<string, unknown> | undefined;
+  const preview = job.previewPayload as Record<string, unknown> | null;
+
+  return (
+    <Box>
+      <PageHeader
+        title={`Import: ${String(upload?.originalName ?? id)}`}
+        subtitle={String(job.summary ?? job.status)}
+      />
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="body2">Module: {String(job.module)}</Typography>
+          <Typography variant="body2">Status: {String(job.status)}</Typography>
+          <Typography variant="body2">
+            Created: {String(job.recordsCreated)} · Updated: {String(job.recordsUpdated)} ·
+            Errors: {String(job.errorCount)}
+          </Typography>
+          <Typography variant="body2">
+            At:{' '}
+            {job.createdAt ? new Date(String(job.createdAt)).toLocaleString() : '—'}
+          </Typography>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Preview payload
+          </Typography>
+          <Box
+            component="pre"
+            sx={{
+              overflow: 'auto',
+              maxHeight: 480,
+              bgcolor: '#0747A6',
+              color: '#DEEBFF',
+              p: 2,
+              borderRadius: 1,
+              fontSize: 12,
+            }}
+          >
+            {JSON.stringify(preview, null, 2)}
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+}
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/imports/ImportsPage.tsx

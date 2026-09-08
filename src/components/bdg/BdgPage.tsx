@@ -23,11 +23,14 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -69,9 +72,18 @@ const emptyForm = {
   ukeuOutbound: 0,
   naInbound: 0,
   naOutbound: 0,
+  periodStart: '',
+  periodEnd: '',
 };
 
+<<<<<<< HEAD:src/components/bdg/BdgPage.tsx
 export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }) {
+=======
+export default function BdgPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTabletDown = useMediaQuery(theme.breakpoints.down('md'));
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/bdg/BdgPage.tsx
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [regions, setRegions] = useState<
     Array<{ region: string; inbound: number; outbound: number; total: number }>
@@ -239,6 +251,8 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
       ukeuOutbound: Number(row.ukeuOutbound ?? 0),
       naInbound: Number(row.naInbound ?? 0),
       naOutbound: Number(row.naOutbound ?? 0),
+      periodStart: row.periodStart ? String(row.periodStart).slice(0, 10) : '',
+      periodEnd: row.periodEnd ? String(row.periodEnd).slice(0, 10) : '',
     });
     setEditOpen(true);
   };
@@ -247,8 +261,13 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
     setBusy(true);
     setError('');
     try {
-      if (editId) await bdgApi.update(editId, form);
-      else await bdgApi.create(form);
+      const payload = {
+        ...form,
+        periodStart: form.periodStart || null,
+        periodEnd: form.periodEnd || null,
+      };
+      if (editId) await bdgApi.update(editId, payload);
+      else await bdgApi.create(payload);
       setEditOpen(false);
       setReloadKey((k) => k + 1);
     } catch (e) {
@@ -271,7 +290,12 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
   if (loading && !summary) return <LoadingState />;
   if (error && !summary) return <ErrorState message={error} />;
   if (!summary) {
-    return <EmptyState title="No BDG data" description="Upload a BDG report to begin." />;
+    return (
+      <EmptyState
+        title="No BDG data"
+        description="Add a BDG member to begin tracking leads."
+      />
+    );
   }
 
   const exportActions = (
@@ -292,6 +316,7 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
 
   return (
     <Box>
+<<<<<<< HEAD:src/components/bdg/BdgPage.tsx
       {hideChrome ? (
         <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
           {exportActions}
@@ -303,6 +328,25 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
           action={exportActions}
         />
       )}
+=======
+      <PageHeader
+        title="BDG Dashboard"
+        subtitle="Lead performance by member and region"
+        action={
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            <Button variant="outlined" onClick={() => download('csv')}>
+              Export CSV
+            </Button>
+            <Button variant="outlined" onClick={() => download('xlsx')}>
+              Export Excel
+            </Button>
+            <Button variant="contained" onClick={openCreate}>
+              Add Member
+            </Button>
+          </Stack>
+        }
+      />
+>>>>>>> 97be95e123299086db26dee4524914b5379ba179:apps/web/src/pages/bdg/BdgPage.tsx
 
       {error ? <ErrorState message={error} /> : null}
 
@@ -322,7 +366,7 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
       </Grid>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
-        <FormControl size="small" sx={{ minWidth: 280 }}>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 280 }, width: { xs: '100%', md: 'auto' } }}>
           <InputLabel>Compare members</InputLabel>
           <Select
             multiple
@@ -376,7 +420,13 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={1}
+                sx={{ mb: 1 }}
+              >
                 <Typography variant="h6">Top Members by Total Leads</Typography>
                 <TextField
                   select
@@ -393,11 +443,20 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                   ))}
                 </TextField>
               </Stack>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={topChartData} layout="vertical" margin={{ left: 80 }}>
+              <ResponsiveContainer width="100%" height={isMobile ? 240 : 280}>
+                <BarChart
+                  data={topChartData}
+                  layout="vertical"
+                  margin={{ left: isMobile ? 8 : 80, right: 8 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
-                  <YAxis type="category" dataKey="memberName" width={100} />
+                  <YAxis
+                    type="category"
+                    dataKey="memberName"
+                    width={isMobile ? 72 : 100}
+                    tick={{ fontSize: isMobile ? 10 : 12 }}
+                  />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="Inbound" fill="#0052CC" name="Inbound" />
@@ -444,8 +503,8 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                     data={regionPie}
                     dataKey="value"
                     nameKey="name"
-                    outerRadius={85}
-                    label
+                    outerRadius={isMobile ? 70 : 85}
+                    label={!isTabletDown}
                   >
                     {regionPie.map((_, i) => (
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -476,7 +535,7 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                 setPage(0);
                 setSearch(e.target.value);
               }}
-              sx={{ minWidth: 220 }}
+              sx={{ minWidth: { xs: '100%', md: 220 }, width: { xs: '100%', md: 'auto' } }}
             />
             <TextField
               select
@@ -484,7 +543,7 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
               size="small"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              sx={{ minWidth: 160 }}
+              sx={{ minWidth: { xs: '100%', md: 160 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="updatedAt">Last Updated</MenuItem>
               <MenuItem value="memberName">Member</MenuItem>
@@ -497,14 +556,15 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
               size="small"
               value={sortDir}
               onChange={(e) => setSortDir(e.target.value as 'asc' | 'desc')}
-              sx={{ minWidth: 120 }}
+              sx={{ minWidth: { xs: '100%', md: 120 }, width: { xs: '100%', md: 'auto' } }}
             >
               <MenuItem value="desc">Desc</MenuItem>
               <MenuItem value="asc">Asc</MenuItem>
             </TextField>
           </Stack>
 
-          <Table size="small">
+          <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
+            <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead>
               <TableRow>
                 <TableCell>BDG Member</TableCell>
@@ -589,6 +649,7 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
               ) : null}
             </TableBody>
           </Table>
+          </TableContainer>
           <TablePagination
             component="div"
             count={total}
@@ -599,47 +660,55 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
               setPageSize(parseInt(e.target.value, 10));
               setPage(0);
             }}
+            labelRowsPerPage={isMobile ? 'Rows' : 'Rows per page'}
           />
         </CardContent>
       </Card>
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
         <DialogTitle>{editId ? 'Update BDG Member' : 'Add BDG Member'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ pt: 1 }}>
             {(
               [
-                ['memberName', 'BDG Member'],
-                ['totalInbound', 'Inbound'],
-                ['totalOutbound', 'Outbound'],
-                ['apacInbound', 'APAC Inbound'],
-                ['apacOutbound', 'APAC Outbound'],
-                ['menaInbound', 'MENA Inbound'],
-                ['menaOutbound', 'MENA Outbound'],
-                ['internationalInbound', 'International Inbound'],
-                ['internationalOutbound', 'International Outbound'],
-                ['ukeuInbound', 'UK/EU Inbound'],
-                ['ukeuOutbound', 'UK/EU Outbound'],
-                ['naInbound', 'NA Inbound'],
-                ['naOutbound', 'NA Outbound'],
+                ['memberName', 'BDG Member', 'text'],
+                ['periodStart', 'Period Start', 'date'],
+                ['periodEnd', 'Period End', 'date'],
+                ['totalInbound', 'Inbound', 'number'],
+                ['totalOutbound', 'Outbound', 'number'],
+                ['apacInbound', 'APAC Inbound', 'number'],
+                ['apacOutbound', 'APAC Outbound', 'number'],
+                ['menaInbound', 'MENA Inbound', 'number'],
+                ['menaOutbound', 'MENA Outbound', 'number'],
+                ['internationalInbound', 'International Inbound', 'number'],
+                ['internationalOutbound', 'International Outbound', 'number'],
+                ['ukeuInbound', 'UK/EU Inbound', 'number'],
+                ['ukeuOutbound', 'UK/EU Outbound', 'number'],
+                ['naInbound', 'NA Inbound', 'number'],
+                ['naOutbound', 'NA Outbound', 'number'],
               ] as const
-            ).map(([key, label]) => (
+            ).map(([key, label, type]) => (
               <TextField
                 key={key}
                 label={label}
-                type={key === 'memberName' ? 'text' : 'number'}
+                type={type}
                 value={form[key]}
                 onChange={(e) =>
                   setForm((f) => ({
                     ...f,
                     [key]:
-                      key === 'memberName'
-                        ? e.target.value
-                        : Number(e.target.value),
+                      type === 'number' ? Number(e.target.value) : e.target.value,
                   }))
                 }
                 fullWidth
                 size="small"
+                InputLabelProps={type === 'date' ? { shrink: true } : undefined}
               />
             ))}
           </Stack>
