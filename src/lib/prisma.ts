@@ -44,14 +44,31 @@ export function resolveDatabaseUrls(databaseUrl: string, directUrl?: string) {
   return { databaseUrl: db, directUrl: direct };
 }
 
+function readEnv(name: string) {
+  return (process.env[name] ?? '').trim();
+}
+
+function rawDatabaseUrl() {
+  return (
+    readEnv('DATABASE_URL') ||
+    readEnv('POSTGRES_PRISMA_URL') ||
+    readEnv('POSTGRES_URL') ||
+    readEnv('DATABASE_URI')
+  );
+}
+
+function rawDirectUrl() {
+  return readEnv('DIRECT_URL') || readEnv('POSTGRES_URL_NON_POOLING');
+}
+
 function ensureDatabaseEnv() {
-  const raw = process.env.DATABASE_URL?.trim() ?? '';
+  const raw = rawDatabaseUrl();
   if (!raw) {
     throw new Error(
       'DATABASE_URL is missing or empty. Add the Supabase pooler URL in Vercel → Settings → Environment Variables (Production and Preview), then redeploy.',
     );
   }
-  const resolved = resolveDatabaseUrls(raw, process.env.DIRECT_URL);
+  const resolved = resolveDatabaseUrls(raw, rawDirectUrl());
   process.env.DATABASE_URL = resolved.databaseUrl;
   process.env.DIRECT_URL = resolved.directUrl;
   return resolved.databaseUrl;
