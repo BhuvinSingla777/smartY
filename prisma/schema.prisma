@@ -149,6 +149,7 @@ model Pod {
   feCompletion            Float?
   beCompletion            Float?
   integrationCompletion   Float?
+  domainCompletions       Json?
   extraFields             Json?
   sourceImportId          String?
   sourceImport            ImportJob?       @relation(fields: [sourceImportId], references: [id], onDelete: SetNull)

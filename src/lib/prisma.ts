@@ -82,6 +82,10 @@ function createPrismaClient() {
   return new PrismaClient({
     datasources: { db: { url } },
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    transactionOptions: {
+      maxWait: 15_000,
+      timeout: 30_000,
+    },
   });
 }
 

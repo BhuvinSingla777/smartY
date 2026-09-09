@@ -21,10 +21,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(dashboard)/loading.js"
     ],
-    "/(dashboard)/uploads/page": [
+    "/(dashboard)/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/uploads/page.js"
+      "static/chunks/app/(dashboard)/dashboard/page.js"
     ],
     "/(dashboard)/pods/page": [
       "static/chunks/webpack.js",
@@ -36,6 +36,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/pods/summary/route.js"
     ],
+    "/api/pods/status/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pods/status/route.js"
+    ],
     "/api/pods/completion/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -46,50 +51,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/pods/route.js"
     ],
-    "/api/pods/status/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/pods/status/route.js"
-    ],
     "/api/pods/[id]/history/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/pods/[id]/history/route.js"
-    ],
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
-    ],
-    "/(dashboard)/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/dashboard/page.js"
-    ],
-    "/(dashboard)/imports/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/imports/page.js"
-    ],
-    "/api/imports/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/imports/route.js"
     ],
     "/api/dashboard/summary/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/dashboard/summary/route.js"
     ],
-    "/api/bdg/summary/route": [
+    "/(dashboard)/bdg/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/bdg/summary/route.js"
+      "static/chunks/app/(dashboard)/bdg/page.js"
     ],
     "/api/bdg/by-region/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/bdg/by-region/route.js"
+    ],
+    "/api/bdg/summary/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/bdg/summary/route.js"
     ],
     "/api/bdg/top-members/route": [
       "static/chunks/webpack.js",
@@ -101,20 +86,100 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/bdg/route.js"
     ],
-    "/(dashboard)/bdg/page": [
+    "/api/pods/[id]/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/bdg/page.js"
+      "static/chunks/app/api/pods/[id]/route.js"
+    ],
+    "/api/pods/by-branch/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pods/by-branch/route.js"
+    ],
+    "/api/pods/[id]/tasks/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pods/[id]/tasks/route.js"
+    ],
+    "/api/pods/[id]/tasks/[taskId]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/pods/[id]/tasks/[taskId]/route.js"
+    ],
+    "/api/bdg/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/bdg/[id]/route.js"
+    ],
+    "/api/bdg/export/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/bdg/export/route.js"
+    ],
+    "/api/queries/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/queries/route.js"
+    ],
+    "/api/queries/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/queries/[id]/route.js"
+    ],
+    "/api/uploads/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/uploads/route.js"
+    ],
+    "/api/uploads/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/uploads/[id]/route.js"
     ],
     "/api/imports/preview/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/imports/preview/route.js"
     ],
+    "/api/imports/commit/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/imports/commit/route.js"
+    ],
+    "/api/imports/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/imports/[id]/route.js"
+    ],
+    "/api/imports/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/imports/route.js"
+    ],
     "/api/pods/from-sheet/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/pods/from-sheet/route.js"
+    ],
+    "/(dashboard)/uploads/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(dashboard)/uploads/page.js"
+    ],
+    "/(dashboard)/imports/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(dashboard)/imports/page.js"
+    ],
+    "/(dashboard)/imports/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(dashboard)/imports/[id]/page.js"
+    ],
+    "/(dashboard)/pods/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(dashboard)/pods/[id]/page.js"
     ]
   }
 }

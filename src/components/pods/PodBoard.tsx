@@ -33,7 +33,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { AVATAR_COLORS } from '@/lib/theme';
-import { POD_BRANCHES, formatPodBranch } from '@/lib/shared';
+import { POD_BRANCHES, POD_DOMAINS, domainOverall, formatPodBranch } from '@/lib/shared';
 
 export type BoardColumnId = 'todo' | 'progress' | 'review' | 'done';
 
@@ -154,27 +154,40 @@ export function PodIssueCard({
   return (
     <Card
       sx={{
-        p: 1.75,
-        mb: 1.25,
-        borderRadius: 2.5,
+        p: 1,
+        mb: 0.75,
+        borderRadius: 2,
         boxShadow: '0 1px 3px rgba(9, 30, 66, 0.13)',
         '&:hover': { boxShadow: '0 8px 16px -4px rgba(9, 30, 66, 0.18)' },
       }}
     >
-      <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }} spacing={0.75}>
+      <Stack direction="row" alignItems="center" sx={{ mb: 0.5 }} spacing={0.5}>
         <Chip
           size="small"
           label={tag.label}
-          sx={{ bgcolor: tag.bg, color: tag.color, fontWeight: 800, letterSpacing: '0.04em' }}
+          sx={{
+            height: 20,
+            bgcolor: tag.bg,
+            color: tag.color,
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+            '& .MuiChip-label': { px: 0.75, fontSize: 10 },
+          }}
         />
         <Chip
           size="small"
           label={branch}
-          sx={{ bgcolor: '#DEEBFF', color: '#0747A6', fontWeight: 700 }}
+          sx={{
+            height: 20,
+            bgcolor: '#DEEBFF',
+            color: '#0747A6',
+            fontWeight: 700,
+            '& .MuiChip-label': { px: 0.75, fontSize: 10 },
+          }}
         />
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton size="small" onClick={() => onEdit(pod)} aria-label={`Edit ${String(pod.name)}`}>
-          <MoreHorizIcon fontSize="small" />
+        <IconButton size="small" onClick={() => onEdit(pod)} aria-label={`Edit ${String(pod.name)}`} sx={{ p: 0.25 }}>
+          <MoreHorizIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Stack>
 
@@ -186,9 +199,9 @@ export function PodIssueCard({
           color: 'text.primary',
           textDecoration: 'none',
           display: 'block',
-          mb: 0.75,
-          fontSize: 14,
-          lineHeight: 1.35,
+          mb: 0.25,
+          fontSize: 13,
+          lineHeight: 1.3,
           '&:hover': { color: 'primary.main' },
         }}
       >
@@ -199,7 +212,9 @@ export function PodIssueCard({
           variant="body2"
           color="text.secondary"
           sx={{
-            mb: 1.5,
+            mb: 0.75,
+            fontSize: 12,
+            lineHeight: 1.3,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -209,32 +224,51 @@ export function PodIssueCard({
         </Typography>
       </Tooltip>
 
-      <Typography variant="caption" fontWeight={600} color="text.secondary">
+      <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ fontSize: 11 }}>
         {progress.label}
       </Typography>
       <LinearProgress
         variant="determinate"
         value={Math.max(0, Math.min(100, overall))}
         sx={{
-          mt: 0.75,
-          mb: 1.5,
-          height: 6,
+          mt: 0.5,
+          mb: 0.75,
+          height: 4,
           '& .MuiLinearProgress-bar': { bgcolor: progress.color },
         }}
       />
+      <Stack direction="row" spacing={0.5} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
+        {POD_DOMAINS.map((domain) => {
+          const value = domainOverall(pod.domainCompletions, domain.id);
+          return (
+            <Chip
+              key={domain.id}
+              size="small"
+              label={`${domain.label} ${value == null ? '—' : `${value}%`}`}
+              sx={{
+                height: 18,
+                bgcolor: '#F4F5F7',
+                color: '#42526E',
+                fontWeight: 600,
+                '& .MuiChip-label': { px: 0.6, fontSize: 9 },
+              }}
+            />
+          );
+        })}
+      </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         {overall >= 100 ? (
-          <CheckCircleIcon sx={{ color: '#36B37E', fontSize: 18 }} />
+          <CheckCircleIcon sx={{ color: '#36B37E', fontSize: 16 }} />
         ) : overall < 40 ? (
-          <KeyboardDoubleArrowUpIcon sx={{ color: '#FF5630', fontSize: 18 }} />
+          <KeyboardDoubleArrowUpIcon sx={{ color: '#FF5630', fontSize: 16 }} />
         ) : (
-          <KeyboardArrowUpIcon sx={{ color: '#36B37E', fontSize: 18 }} />
+          <KeyboardArrowUpIcon sx={{ color: '#36B37E', fontSize: 16 }} />
         )}
         <AvatarGroup
           max={4}
           sx={{
-            '& .MuiAvatar-root': { width: 24, height: 24, fontSize: 10, fontWeight: 700, borderWidth: 1 },
+            '& .MuiAvatar-root': { width: 20, height: 20, fontSize: 9, fontWeight: 700, borderWidth: 1 },
           }}
         >
           {people.length
@@ -296,8 +330,9 @@ export function PodTimeline({ pods }: { pods: Array<Record<string, unknown>> }) 
         bgcolor: '#fff',
         borderRadius: 3,
         px: 1.5,
-        py: 1.75,
-        mb: 2,
+        py: 1.25,
+        mb: 1.5,
+        flexShrink: 0,
         boxShadow: '0 1px 1px rgba(9, 30, 66, 0.13)',
         display: 'flex',
         alignItems: 'center',
@@ -441,13 +476,21 @@ export default function PodBoard({
   }));
 
   return (
-    <Box>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: { xs: 'calc(100dvh - 96px)', md: 'calc(100dvh - 48px)' },
+        minHeight: 0,
+        overflow: 'hidden',
+      }}
+    >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         justifyContent="space-between"
         alignItems={{ sm: 'center' }}
         spacing={1.5}
-        sx={{ mb: 2 }}
+        sx={{ mb: 1.5, flexShrink: 0 }}
       >
         <Typography variant="h4" sx={{ mb: 0, fontSize: 28 }}>
           Board
@@ -488,7 +531,7 @@ export default function PodBoard({
 
       <PodTimeline pods={filtered} />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 1.5, flexShrink: 0 }}>
         <TextField
           size="small"
           placeholder="Search"
@@ -632,9 +675,12 @@ export default function PodBoard({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(4, minmax(240px, 1fr))' },
-          gap: 1.75,
-          alignItems: 'start',
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(4, minmax(0, 1fr))' },
+          gap: 1.5,
+          alignItems: 'stretch',
+          flex: 1,
+          minHeight: 0,
+          overflow: { xs: 'auto', md: 'hidden' },
         }}
       >
         {grouped.map((column) => (
@@ -643,17 +689,21 @@ export default function PodBoard({
             sx={{
               bgcolor: '#EBECF0',
               borderRadius: 2.5,
-              p: 1.25,
-              minHeight: 480,
+              p: 1,
+              height: { xs: 360, md: '100%' },
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
             }}
           >
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 0.5, mb: 1.25 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 0.5, mb: 0.75, flexShrink: 0 }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: column.dot }} />
               <Typography variant="subtitle2" fontWeight={700}>
                 {column.title} ({column.items.length})
               </Typography>
               <Box sx={{ flexGrow: 1 }} />
-              <IconButton size="small">
+              <IconButton size="small" sx={{ p: 0.25 }}>
                 <MoreHorizIcon fontSize="small" />
               </IconButton>
             </Stack>
@@ -665,21 +715,24 @@ export default function PodBoard({
                 startIcon={<AddIcon />}
                 onClick={onAdd}
                 sx={{
-                  mb: 1.25,
+                  mb: 0.75,
+                  flexShrink: 0,
                   borderStyle: 'dashed',
                   borderRadius: 2,
                   bgcolor: '#fff',
                   color: 'text.secondary',
-                  py: 1,
+                  py: 0.5,
                 }}
               >
                 Add Task
               </Button>
             ) : null}
 
-            {column.items.map((pod) => (
-              <PodIssueCard key={String(pod.id)} pod={pod} onEdit={onEdit} />
-            ))}
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.25 }}>
+              {column.items.map((pod) => (
+                <PodIssueCard key={String(pod.id)} pod={pod} onEdit={onEdit} />
+              ))}
+            </Box>
           </Box>
         ))}
       </Box>

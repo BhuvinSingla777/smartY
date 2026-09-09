@@ -65,7 +65,7 @@ import {
   LoadingState,
   PageHeader,
 } from '@/components/common/Common';
-import { POD_BRANCHES, formatPodBranch } from '@/lib/shared';
+import { POD_BRANCHES, POD_DOMAINS, domainOverall, formatPodBranch } from '@/lib/shared';
 import ReportSourceSelect from '@/components/reports/ReportSourceSelect';
 
 const PIE_COLORS = ['#0052CC', '#4C9AFF', '#FFAB00', '#36B37E', '#6554C0', '#6B778C'];
@@ -1081,7 +1081,7 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
           </Stack>
 
           <TableContainer sx={{ overflowX: 'auto', width: '100%' }}>
-            <Table size="small" sx={{ minWidth: 1100 }}>
+            <Table size="small" sx={{ minWidth: 1300 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>POD Name</TableCell>
@@ -1091,6 +1091,9 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                   <TableCell>Developer</TableCell>
                   <TableCell>Machine Owner</TableCell>
                   <TableCell>Machine</TableCell>
+                  <TableCell align="right">Fast API %</TableCell>
+                  <TableCell align="right">Node %</TableCell>
+                  <TableCell align="right">.NET Core %</TableCell>
                   <TableCell align="right">FE %</TableCell>
                   <TableCell align="right">BE %</TableCell>
                   <TableCell align="right">Integration %</TableCell>
@@ -1126,6 +1129,11 @@ export default function PodsPage({ reportsOnly = false }: { reportsOnly?: boolea
                     <TableCell>{String(row.developers ?? '—')}</TableCell>
                     <TableCell>{String(row.machineOwner ?? '—')}</TableCell>
                     <TableCell>{String(row.machineAlignedToProject ?? '—')}</TableCell>
+                    {POD_DOMAINS.map((domain) => (
+                      <TableCell key={domain.id} align="right">
+                        {String(domainOverall(row.domainCompletions, domain.id) ?? '—')}
+                      </TableCell>
+                    ))}
                     <TableCell align="right">{String(row.feCompletion ?? '—')}</TableCell>
                     <TableCell align="right">{String(row.beCompletion ?? '—')}</TableCell>
                     <TableCell align="right">

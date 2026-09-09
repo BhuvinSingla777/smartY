@@ -83,7 +83,7 @@ export class PodTasksService {
         rows.push(row);
       }
       return rows.sort((a, b) => a.sortOrder - b.sortOrder || a.number - b.number);
-    });
+    }, { maxWait: 15_000, timeout: 60_000 });
 
     await this.syncPodStatus(podId, saved);
     return this.withSummary(podId, saved);

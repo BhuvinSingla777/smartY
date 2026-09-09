@@ -30,6 +30,19 @@ export interface BdgRecord {
   periodEnd?: string | null;
 }
 
+export interface DomainCompletionRecord {
+  fe: number | null;
+  be: number | null;
+  integration: number | null;
+  overall: number | null;
+}
+
+export interface PodDomainCompletionsRecord {
+  fastApi: DomainCompletionRecord;
+  node: DomainCompletionRecord;
+  dotnet: DomainCompletionRecord;
+}
+
 export interface PodInfoRecord {
   podName: string;
   description?: string | null;
@@ -42,6 +55,7 @@ export interface PodInfoRecord {
   feCompletion?: number | null;
   beCompletion?: number | null;
   integrationCompletion?: number | null;
+  domainCompletions?: PodDomainCompletionsRecord | null;
   extraFields?: Record<string, unknown> | null;
 }
 

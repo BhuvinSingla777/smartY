@@ -48,7 +48,7 @@ import {
   PageHeader,
   EmptyState,
 } from '@/components/common/Common';
-import { formatPodBranch } from '@/lib/shared';
+import { POD_DOMAINS, domainOverall, formatPodBranch, readDomainCompletions } from '@/lib/shared';
 import PodTaskBoard, { type PodTask } from '@/components/pods/PodTaskBoard';
 
 const emptyDaily = {
@@ -261,10 +261,49 @@ export default function PodDetailPage() {
                 label="Integration"
                 value={pod.integrationCompletion as number}
               />
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Overall: {String(pod.overallCompletion ?? 0)}%
                 {Number(pod.taskCount ?? 0) > 0 ? ' (from tasks)' : ''}
               </Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>
+                Domain completion
+              </Typography>
+              {POD_DOMAINS.map((domain) => (
+                <ProgressRow
+                  key={domain.id}
+                  label={domain.label}
+                  value={domainOverall(pod.domainCompletions, domain.id) as number}
+                />
+              ))}
+              {(() => {
+                const domains = readDomainCompletions(pod.domainCompletions);
+                if (!domains) return null;
+                return (
+                  <Table size="small" sx={{ mt: 1.5 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Domain</TableCell>
+                        <TableCell align="right">FE</TableCell>
+                        <TableCell align="right">BE</TableCell>
+                        <TableCell align="right">Integration</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {POD_DOMAINS.map((domain) => {
+                        const row = domains[domain.id];
+                        return (
+                          <TableRow key={domain.id}>
+                            <TableCell>{domain.label}</TableCell>
+                            <TableCell align="right">{row.fe ?? '—'}</TableCell>
+                            <TableCell align="right">{row.be ?? '—'}</TableCell>
+                            <TableCell align="right">{row.integration ?? '—'}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                );
+              })()}
             </CardContent>
           </Card>
         </Grid>

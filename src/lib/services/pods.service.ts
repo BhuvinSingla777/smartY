@@ -1,5 +1,12 @@
 import { Prisma } from '@prisma/client';
-import { normalizeKey, normalizePercentage, overallCompletion, parsePodBranch } from '@/lib/shared';
+import {
+  finalizeDomainCompletions,
+  normalizeKey,
+  normalizePercentage,
+  overallCompletion,
+  parsePodBranch,
+  readDomainCompletions,
+} from '@/lib/shared';
 import type { ParsedSheet } from '@/lib/shared';
 import { prisma } from '@/lib/prisma';
 import { ApiError } from '@/lib/errors';
@@ -36,6 +43,7 @@ export interface PodUpsertDto {
   feCompletion?: number | null;
   beCompletion?: number | null;
   integrationCompletion?: number | null;
+  domainCompletions?: Record<string, unknown> | null;
   extraFields?: Record<string, unknown> | null;
 }
 
@@ -233,6 +241,15 @@ export class PodsService {
       const dailyRecords = extractDailyFromSheet(dailySheet).filter((record) =>
         keptNames.has(normalizeKey(record.podName)),
       );
+      const latestByPod = new Map<
+        string,
+        {
+          date: string;
+          feCompletion: number | null;
+          beCompletion: number | null;
+          integrationCompletion: number | null;
+        }
+      >();
       for (const record of dailyRecords) {
         const pod = await prisma.pod.findUnique({
           where: { normalizedName: normalizeKey(record.podName) },
@@ -255,6 +272,27 @@ export class PodsService {
           },
         });
         dailyUpserts += 1;
+        const key = pod.id;
+        const prev = latestByPod.get(key);
+        if (!prev || record.date >= prev.date) {
+          latestByPod.set(key, {
+            date: record.date,
+            feCompletion: record.feCompletion,
+            beCompletion: record.beCompletion,
+            integrationCompletion: record.integrationCompletion,
+          });
+        }
+      }
+
+      for (const [podId, latest] of latestByPod) {
+        await prisma.pod.update({
+          where: { id: podId },
+          data: {
+            feCompletion: latest.feCompletion,
+            beCompletion: latest.beCompletion,
+            integrationCompletion: latest.integrationCompletion,
+          },
+        });
       }
     }
 
@@ -451,6 +489,11 @@ export class PodsService {
   }
 
   private toPrismaData(dto: PodUpsertDto, normalized: string) {
+    const domainCompletions =
+      dto.domainCompletions === undefined
+        ? undefined
+        : finalizeDomainCompletions(readDomainCompletions(dto.domainCompletions) ?? null);
+
     return {
       name: dto.name.trim(),
       normalizedName: normalized,
@@ -473,6 +516,12 @@ export class PodsService {
         dto.integrationCompletion === null || dto.integrationCompletion === undefined
           ? null
           : normalizePercentage(dto.integrationCompletion),
+      domainCompletions:
+        domainCompletions === undefined
+          ? undefined
+          : domainCompletions
+            ? (domainCompletions as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
       extraFields:
         dto.extraFields === undefined
           ? undefined

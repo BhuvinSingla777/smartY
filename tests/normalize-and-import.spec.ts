@@ -483,6 +483,105 @@ describe('PODS.xlsx workbook layout', () => {
     });
   });
 
+  it('labels Info completion columns with Fast API / Node / .NET Core domains', () => {
+    const sheet = matrixToParsedSheet('Info', [
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        'Completion Percentage (Fast API)',
+        null,
+        null,
+        'Completion Percentage (Node)',
+        null,
+        null,
+        'Completion Percentage (.NET Core)',
+        null,
+        null,
+      ],
+      [
+        'POD Name ',
+        'Description',
+        'Status ',
+        'Branch',
+        'Start Date ',
+        'Dev',
+        'Machine Owner ',
+        'Machine aligned to project ',
+        'FE ',
+        'BE',
+        'FE + BE integrations',
+        'FE ',
+        'BE',
+        'FE + BE integrations',
+        'FE ',
+        'BE',
+        'FE + BE integrations',
+      ],
+      [
+        'TeleHealth',
+        'Remote care',
+        'In Progress',
+        'SDD',
+        46243,
+        'Abhishek',
+        'Abhishek',
+        'TeleHealth',
+        0.8,
+        0.7,
+        0.75,
+        0.6,
+        0.65,
+        0.62,
+        '/',
+        '/',
+        '/',
+      ],
+    ]);
+    expect(sheet?.headers).toEqual([
+      'POD Name',
+      'Description',
+      'Status',
+      'Branch',
+      'Start Date',
+      'Dev',
+      'Machine Owner',
+      'Machine aligned to project',
+      'FE — Fast API',
+      'BE — Fast API',
+      'FE + BE integrations — Fast API',
+      'FE — Node',
+      'BE — Node',
+      'FE + BE integrations — Node',
+      'FE — .NET Core',
+      'BE — .NET Core',
+      'FE + BE integrations — .NET Core',
+    ]);
+    expect(sheet?.rows[0]?.Branch).toBe('SDD');
+    expect(sheet?.rows[0]?.['FE — Fast API']).toBe(80);
+    expect(sheet?.rows[0]?.['FE — .NET Core']).toBeNull();
+    const transformed = transformPodsSheets([sheet!]);
+    expect(transformed.pods[0].data.branch).toBe('sdd');
+    expect(transformed.pods[0].data.domainCompletions?.fastApi).toEqual({
+      fe: 80,
+      be: 70,
+      integration: 75,
+      overall: 75,
+    });
+    expect(transformed.pods[0].data.domainCompletions?.node?.overall).toBe(62.33);
+    expect(transformed.pods[0].data.domainCompletions?.dotnet).toEqual({
+      fe: null,
+      be: null,
+      integration: null,
+      overall: null,
+    });
+  });
+
   it('parses the canonical PODS.xlsx Info and Daily Update sheets', async () => {
     const fs = await import('fs');
     const path = await import('path');
@@ -495,20 +594,30 @@ describe('PODS.xlsx workbook layout', () => {
       'POD Name',
       'Description',
       'Status',
+      'Branch',
       'Start Date',
       'Dev',
       'Machine Owner',
       'Machine aligned to project',
-      'FE',
-      'BE',
-      'FE + BE integrations',
+      'FE — Fast API',
+      'BE — Fast API',
+      'FE + BE integrations — Fast API',
+      'FE — Node',
+      'BE — Node',
+      'FE + BE integrations — Node',
+      'FE — .NET Core',
+      'BE — .NET Core',
+      'FE + BE integrations — .NET Core',
     ]);
     expect(info?.rows.length).toBeGreaterThanOrEqual(8);
     expect(info?.rows[0]?.['POD Name']).toBe('TeleHealth');
+    expect(info?.rows[0]?.Branch).toBe('SDD');
     expect(String(info?.rows[0]?.['Start Date'])).toBe('2026-08-09');
     expect(daily?.headers).toContain('FE — 2026-09-01');
     expect(daily?.headers).toContain('FE — 2026-09-02');
     expect(extractDailyFromSheet(daily!).length).toBeGreaterThan(0);
+    const transformed = transformPodsSheets(result.sheets);
+    expect(transformed.pods[0].data.branch).toBe('sdd');
   });
 });
 

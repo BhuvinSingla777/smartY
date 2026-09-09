@@ -1,6 +1,8 @@
 import {
   ParsedSheet,
+  domainLabel,
   excelSerialToIsoDate,
+  extractDomainFromTitle,
   mapPodHeader,
   normalizePercentage,
   parseFlexibleDate,
@@ -48,7 +50,7 @@ function isDateTitleRow(row: unknown[]): boolean {
 }
 
 function isCompletionHeader(header: string): boolean {
-  const field = mapPodHeader(header.split('—')[0] ?? header);
+  const field = mapPodHeader(header.split(/[—–-]/)[0]?.trim() ?? header);
   return (
     field === 'feCompletion' ||
     field === 'beCompletion' ||
@@ -56,8 +58,14 @@ function isCompletionHeader(header: string): boolean {
   );
 }
 
+function isBlankCompletionPlaceholder(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  const text = cellText(value);
+  return text === '' || text === '/' || text === '-' || text === '—' || text === '–';
+}
+
 function coerceCell(value: unknown, header: string): unknown {
-  if (value === null || value === undefined || value === '') return null;
+  if (isBlankCompletionPlaceholder(value)) return null;
 
   if (typeof value === 'number' && Number.isFinite(value)) {
     if (/date/i.test(header) && value > 20000 && value < 80000) {
@@ -112,13 +120,33 @@ function buildDailyLayout(titleRow: unknown[], metricRow: unknown[]) {
   return { headers: uniquifyHeaders(headers), colIndexes };
 }
 
-function buildInfoLayout(metricRow: unknown[]) {
+function buildInfoLayout(titleRow: unknown[], metricRow: unknown[]) {
+  const width = Math.max(titleRow.length, metricRow.length);
+  let lastDomainId: ReturnType<typeof extractDomainFromTitle> = null;
+  const filledDomains: Array<ReturnType<typeof extractDomainFromTitle>> = [];
+  for (let i = 0; i < width; i++) {
+    const extracted = extractDomainFromTitle(titleRow[i]);
+    if (extracted) lastDomainId = extracted;
+    filledDomains.push(lastDomainId);
+  }
+
   const headers: string[] = [];
   const colIndexes: number[] = [];
-  for (let i = 0; i < metricRow.length; i++) {
+  for (let i = 0; i < width; i++) {
     const label = cellText(metricRow[i]);
     if (!label) continue;
-    headers.push(label);
+    const field = mapPodHeader(label);
+    const domainId = filledDomains[i];
+    if (
+      domainId &&
+      (field === 'feCompletion' ||
+        field === 'beCompletion' ||
+        field === 'integrationCompletion')
+    ) {
+      headers.push(`${label} — ${domainLabel(domainId)}`);
+    } else {
+      headers.push(label);
+    }
     colIndexes.push(i);
   }
   return { headers: uniquifyHeaders(headers), colIndexes };
@@ -126,7 +154,8 @@ function buildInfoLayout(metricRow: unknown[]) {
 
 /**
  * PODS.xlsx layout:
- * Info: row 1 title ("Completion Percentage"), row 2 headers, then one row per POD.
+ * Info: row 1 domain groups (Fast API / Node / .NET Core), row 2 headers (+ Branch),
+ * then one row per POD.
  * Daily Update: row 1 date groups, row 2 FE/BE/Integration, then one row per POD.
  */
 export function matrixToParsedSheet(name: string, matrix: Matrix): ParsedSheet | null {
@@ -137,7 +166,7 @@ export function matrixToParsedSheet(name: string, matrix: Matrix): ParsedSheet |
   const daily = isDateTitleRow(titleRow);
   const { headers, colIndexes } = daily
     ? buildDailyLayout(titleRow, metricRow)
-    : buildInfoLayout(metricRow);
+    : buildInfoLayout(titleRow, metricRow);
 
   if (headers.length === 0) return null;
 

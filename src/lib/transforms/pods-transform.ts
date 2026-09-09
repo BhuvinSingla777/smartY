@@ -13,6 +13,11 @@ import {
   parseFlexibleDate,
   parsePodBranch,
   resolvePodBranch,
+  emptyDomainCompletions,
+  finalizeDomainCompletions,
+  parseDomainMetricHeader,
+  type PodDomainId,
+  type DomainCompletion,
 } from '@/lib/shared';
 
 export interface PodsTransformResult {
@@ -49,7 +54,14 @@ function validateCompletion(
   field: string,
   issues: ValidationIssue[],
 ): number | null {
-  if (value === null || value === undefined || String(value).trim() === '') {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === '' ||
+    String(value).trim() === '/' ||
+    String(value).trim() === '-' ||
+    String(value).trim() === '—'
+  ) {
     return null;
   }
   const n = normalizePercentage(value);
@@ -72,6 +84,17 @@ function validateCompletion(
     return null;
   }
   return n;
+}
+
+function applyDomainMetric(
+  bucket: Record<PodDomainId, DomainCompletion>,
+  domain: PodDomainId,
+  field: 'feCompletion' | 'beCompletion' | 'integrationCompletion',
+  value: number | null,
+) {
+  if (field === 'feCompletion') bucket[domain].fe = value;
+  if (field === 'beCompletion') bucket[domain].be = value;
+  if (field === 'integrationCompletion') bucket[domain].integration = value;
 }
 
 export function transformPodsSheets(
@@ -102,16 +125,50 @@ export function transformPodsSheets(
   infoSheet.rows.forEach((row, index) => {
     const rowNum = index + 2;
     const issues: ValidationIssue[] = [];
-    const get = (field: string): unknown => {
-      const header = Object.entries(mapping).find(([, f]) => f === field)?.[0];
-      return header ? row[header] : undefined;
-    };
+    const plain: Partial<Record<string, unknown>> = {};
+    const domainBucket = emptyDomainCompletions();
+    const extraFields: Record<string, unknown> = {};
+
+    for (const header of infoSheet.headers) {
+      const value = row[header];
+      const parsed = parseDomainMetricHeader(header);
+      if (
+        parsed.domain &&
+        (parsed.field === 'feCompletion' ||
+          parsed.field === 'beCompletion' ||
+          parsed.field === 'integrationCompletion')
+      ) {
+        const metricLabel =
+          parsed.field === 'feCompletion'
+            ? `FE (${parsed.domain})`
+            : parsed.field === 'beCompletion'
+              ? `BE (${parsed.domain})`
+              : `Integration (${parsed.domain})`;
+        applyDomainMetric(
+          domainBucket,
+          parsed.domain,
+          parsed.field,
+          validateCompletion(value, rowNum, metricLabel, issues),
+        );
+        continue;
+      }
+
+      if (parsed.field && plain[parsed.field] === undefined) {
+        plain[parsed.field] = value;
+        continue;
+      }
+
+      if (value === null || value === undefined || String(value).trim() === '') continue;
+      extraFields[header] = value;
+    }
+
+    const get = (field: string): unknown => plain[field];
 
     const podName = String(get('podName') ?? '').trim();
     if (!podName) {
       // skip blank spacer rows common in PODS workbook
       const anyValue = Object.values(row).some(
-        (v) => v !== null && v !== undefined && String(v).trim() !== '',
+        (v) => v !== null && v !== undefined && String(v).trim() !== '' && String(v).trim() !== '/',
       );
       if (!anyValue) return;
       issues.push({
@@ -136,14 +193,6 @@ export function transformPodsSheets(
       }
     }
 
-    const extraFields: Record<string, unknown> = {};
-    for (const header of infoSheet.headers) {
-      if (mapping[header]) continue;
-      const value = row[header];
-      if (value === null || value === undefined || String(value).trim() === '') continue;
-      extraFields[header] = value;
-    }
-
     const branchRaw = get('branch');
     if (
       branchRaw !== null &&
@@ -158,6 +207,8 @@ export function transformPodsSheets(
         severity: 'warning',
       });
     }
+
+    const domainCompletions = finalizeDomainCompletions(domainBucket);
 
     const data: PodInfoRecord = {
       podName,
@@ -177,6 +228,7 @@ export function transformPodsSheets(
         'Integration',
         issues,
       ),
+      domainCompletions,
       extraFields: Object.keys(extraFields).length ? extraFields : null,
     };
 

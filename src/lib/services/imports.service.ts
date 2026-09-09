@@ -271,7 +271,8 @@ export class ImportsService {
     let updated = 0;
     let skipped = 0;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(
+      async (tx) => {
       for (const record of preview.records) {
         if (
           record.action === 'skip' ||
@@ -321,7 +322,9 @@ export class ImportsService {
           created += 1;
         }
       }
-    });
+      },
+      { maxWait: 15_000, timeout: 60_000 },
+    );
 
     return {
       created,
@@ -336,7 +339,8 @@ export class ImportsService {
     let updated = 0;
     let skipped = 0;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(
+      async (tx) => {
       for (const record of preview.pods) {
         if (
           record.action === 'skip' ||
@@ -362,6 +366,11 @@ export class ImportsService {
           feCompletion: d.feCompletion ?? null,
           beCompletion: d.beCompletion ?? null,
           integrationCompletion: d.integrationCompletion ?? null,
+          domainCompletions: d.domainCompletions
+            ? (d.domainCompletions as Prisma.InputJsonValue)
+            : existing
+              ? undefined
+              : Prisma.JsonNull,
           extraFields:
             d.extraFields && Object.keys(d.extraFields).length > 0
               ? (d.extraFields as Prisma.InputJsonValue)
@@ -379,6 +388,16 @@ export class ImportsService {
           created += 1;
         }
       }
+
+      const latestDailyByPod = new Map<
+        string,
+        {
+          date: string;
+          feCompletion: number | null;
+          beCompletion: number | null;
+          integrationCompletion: number | null;
+        }
+      >();
 
       for (const record of preview.dailyUpdates) {
         if (
@@ -433,8 +452,31 @@ export class ImportsService {
           });
           created += 1;
         }
+
+        const prev = latestDailyByPod.get(pod.id);
+        if (!prev || d.date >= prev.date) {
+          latestDailyByPod.set(pod.id, {
+            date: d.date,
+            feCompletion: d.feCompletion,
+            beCompletion: d.beCompletion,
+            integrationCompletion: d.integrationCompletion,
+          });
+        }
       }
-    });
+
+      for (const [podId, latest] of latestDailyByPod) {
+        await tx.pod.update({
+          where: { id: podId },
+          data: {
+            feCompletion: latest.feCompletion,
+            beCompletion: latest.beCompletion,
+            integrationCompletion: latest.integrationCompletion,
+          },
+        });
+      }
+      },
+      { maxWait: 15_000, timeout: 60_000 },
+    );
 
     return {
       created,
@@ -483,6 +525,30 @@ export class ImportsService {
           },
         },
         committedBy: { select: { id: true, name: true, email: true } },
+        pods: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            branch: true,
+            feCompletion: true,
+            beCompletion: true,
+            integrationCompletion: true,
+            domainCompletions: true,
+          },
+          orderBy: { name: 'asc' },
+          take: 200,
+        },
+        bdgMembers: {
+          select: {
+            id: true,
+            memberName: true,
+            totalInbound: true,
+            totalOutbound: true,
+          },
+          orderBy: { memberName: 'asc' },
+          take: 200,
+        },
       },
     });
     if (!job) throw new ApiError(404, 'Import not found');
@@ -498,6 +564,12 @@ export class ImportsService {
     recordsFound: number;
     summary: string;
     warningCount?: number;
+    sheets?: ParsedSheet[];
+    createdNames?: string[];
+    updatedNames?: string[];
+    skippedRows?: Array<{ name: string; reason: string }>;
+    dailyUpserts?: number;
+    podIds?: string[];
   }) {
     const originalName = (opts.fileName || 'sheet-import.xlsx').replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180);
     const ext = originalName.split('.').pop()?.toLowerCase();
@@ -528,7 +600,7 @@ export class ImportsService {
       },
     });
 
-    return prisma.importJob.create({
+    const job = await prisma.importJob.create({
       data: {
         uploadId: upload.id,
         module: opts.module,
@@ -541,12 +613,25 @@ export class ImportsService {
         warningCount: opts.warningCount ?? 0,
         summary: opts.summary,
         committedAt: new Date(),
-      },
-      include: {
-        upload: true,
-        committedBy: { select: { id: true, name: true, email: true } },
+        previewPayload: {
+          module: opts.module,
+          sheets: opts.sheets ?? [],
+          createdNames: opts.createdNames ?? [],
+          updatedNames: opts.updatedNames ?? [],
+          skippedRows: opts.skippedRows ?? [],
+          dailyUpserts: opts.dailyUpserts ?? 0,
+        } as Prisma.InputJsonValue,
       },
     });
+
+    if (opts.podIds?.length) {
+      await prisma.pod.updateMany({
+        where: { id: { in: opts.podIds } },
+        data: { sourceImportId: job.id },
+      });
+    }
+
+    return this.findOne(job.id);
   }
 
   private serializeParsedSheets(sheets: ParsedSheet[]): ParsedSheet[] {

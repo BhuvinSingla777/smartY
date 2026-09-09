@@ -33,6 +33,15 @@ export async function POST(request: NextRequest) {
       skipped: result.skippedCount,
       recordsFound: result.createdCount + result.updatedCount + result.skippedCount,
       summary: result.summary,
+      sheets: body.sheets?.length ? body.sheets : body.sheet ? [body.sheet] : [],
+      createdNames: result.created.map((p) => p.name),
+      updatedNames: result.updated.map((p) => p.name),
+      skippedRows: result.skipped.map((s) => ({
+        name: s.name,
+        reason: s.reason,
+      })),
+      dailyUpserts: result.dailyUpserts,
+      podIds: [...result.created, ...result.updated].map((p) => p.id),
     });
     return { ...result, importJobId: importJob.id };
   });

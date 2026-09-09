@@ -33,9 +33,7 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import { SIDEBAR_BG, SIDEBAR_BG_END } from '@/lib/theme';
-
-const DRAWER_WIDTH = 248;
+import { DRAWER_WIDTH, SIDEBAR_BG, SIDEBAR_BG_END } from '@/lib/theme';
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },

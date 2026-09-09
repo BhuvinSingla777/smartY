@@ -182,15 +182,19 @@ export const theme = createTheme({
 });
 
 export const CHART_COLORS = [
-  CYAN[600],
-  CYAN[400],
-  '#7BC9C4',
-  '#5BB89A',
-  '#8EC5D6',
-  '#E0B15A',
   CYAN[500],
+  '#6B8AA8',
+  CYAN[400],
+  '#5BB89A',
+  '#7BC9C4',
+  CYAN[600],
+  '#8EC5D6',
 ];
 
+export const CHART_INBOUND = CYAN[500];
+export const CHART_OUTBOUND = '#6B8AA8';
+
+export const DRAWER_WIDTH = 248;
 export const SIDEBAR_BG = CYAN[100];
 export const SIDEBAR_BG_END = CYAN[200];
 export const AVATAR_COLORS = [CYAN[600], '#5BB89A', '#7BC9C4', '#8EC5D6', CYAN[500], '#E0B15A'];

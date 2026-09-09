@@ -7,8 +7,12 @@ import {
   resolvePodBranch,
   serializeCell,
   uniquifyHeaders,
+  emptyDomainCompletions,
+  finalizeDomainCompletions,
+  parseDomainMetricHeader,
   type PodBranch,
   type PodField,
+  type PodDomainCompletions,
 } from '@/lib/shared';
 
 export type SheetPodDto = {
@@ -23,6 +27,7 @@ export type SheetPodDto = {
   feCompletion?: number | null;
   beCompletion?: number | null;
   integrationCompletion?: number | null;
+  domainCompletions?: PodDomainCompletions | null;
   extraFields?: Record<string, unknown> | null;
 };
 
@@ -76,11 +81,27 @@ export function sheetRowToPod(
   const nameHeader = detectPodNameHeader(uniqueHeaders);
   const mapped: Partial<Record<PodField, unknown>> = {};
   const extraFields: Record<string, unknown> = {};
+  const domainBucket = emptyDomainCompletions();
 
   for (const header of uniqueHeaders) {
     const value = serializeCell(row[header]);
-    if (value === null) continue;
-    const field = mapPodHeader(header);
+    if (value === null || value === '/' || value === '-' || value === '—') continue;
+    const parsed = parseDomainMetricHeader(header);
+    if (
+      parsed.domain &&
+      (parsed.field === 'feCompletion' ||
+        parsed.field === 'beCompletion' ||
+        parsed.field === 'integrationCompletion')
+    ) {
+      const pct = toPercent(value);
+      if (parsed.field === 'feCompletion') domainBucket[parsed.domain].fe = pct;
+      if (parsed.field === 'beCompletion') domainBucket[parsed.domain].be = pct;
+      if (parsed.field === 'integrationCompletion') {
+        domainBucket[parsed.domain].integration = pct;
+      }
+      continue;
+    }
+    const field = parsed.field;
     if (field && mapped[field] === undefined) {
       mapped[field] = value;
     } else if (header !== nameHeader) {
@@ -115,6 +136,7 @@ export function sheetRowToPod(
     feCompletion: toPercent(mapped.feCompletion),
     beCompletion: toPercent(mapped.beCompletion),
     integrationCompletion: toPercent(mapped.integrationCompletion),
+    domainCompletions: finalizeDomainCompletions(domainBucket),
     extraFields: Object.keys(extraFields).length ? extraFields : null,
   };
 

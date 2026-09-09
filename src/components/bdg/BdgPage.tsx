@@ -55,8 +55,11 @@ import {
   LoadingState,
   PageHeader,
 } from '@/components/common/Common';
-
-const PIE_COLORS = ['#0052CC', '#4C9AFF', '#FFAB00', '#36B37E', '#6554C0'];
+import {
+  CHART_COLORS,
+  CHART_INBOUND,
+  CHART_OUTBOUND,
+} from '@/lib/theme';
 
 const emptyForm = {
   memberName: '',
@@ -386,8 +389,8 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="inbound" fill="#0052CC" name="Inbound" />
-                  <Bar dataKey="outbound" fill="#FFAB00" name="Outbound" />
+                  <Bar dataKey="inbound" fill={CHART_INBOUND} name="Inbound" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="outbound" fill={CHART_OUTBOUND} name="Outbound" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -435,8 +438,8 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                   />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="Inbound" fill="#0052CC" name="Inbound" />
-                  <Bar dataKey="Outbound" fill="#FFAB00" name="Outbound" />
+                  <Bar dataKey="Inbound" fill={CHART_INBOUND} name="Inbound" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Outbound" fill={CHART_OUTBOUND} name="Outbound" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -454,11 +457,11 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                   <XAxis dataKey="type" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="value" name="Leads">
+                  <Bar dataKey="value" name="Leads" radius={[4, 4, 0, 0]}>
                     {inboundOutbound.map((entry) => (
                       <Cell
                         key={entry.type}
-                        fill={entry.type === 'Inbound' ? '#0052CC' : '#FFAB00'}
+                        fill={entry.type === 'Inbound' ? CHART_INBOUND : CHART_OUTBOUND}
                       />
                     ))}
                   </Bar>
@@ -483,7 +486,7 @@ export default function BdgPage({ hideChrome = false }: { hideChrome?: boolean }
                     label={!isTabletDown}
                   >
                     {regionPie.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />

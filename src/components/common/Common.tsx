@@ -9,6 +9,7 @@ import {
   Alert,
 } from '@mui/material';
 import type { ReactNode } from 'react';
+import { DRAWER_WIDTH } from '@/lib/theme';
 
 export function KpiCard({
   label,
@@ -56,12 +57,17 @@ export function LoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
     <Box
       sx={{
+        position: 'fixed',
+        top: { xs: 64, md: 0 },
+        left: { xs: 0, md: `${DRAWER_WIDTH}px` },
+        right: 0,
+        bottom: 0,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        py: 8,
         gap: 2,
+        zIndex: 1,
       }}
     >
       <CircularProgress size={36} />

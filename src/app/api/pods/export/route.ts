@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jsonError } from '@/lib/http';
 import { parsePodsQuery } from '@/lib/query';
 import { podsService } from '@/lib/services/pods.service';
+import { domainOverall } from '@/lib/shared';
 
 export const runtime = 'nodejs';
 
@@ -25,10 +26,16 @@ export async function GET(request: NextRequest) {
     const query = parsePodsQuery(request);
     const format = request.nextUrl.searchParams.get('format') ?? 'csv';
     const rows = await podsService.exportAll(query);
+    const flatRows = (rows as Array<Record<string, unknown>>).map((row) => ({
+      ...row,
+      fastApiCompletion: domainOverall(row.domainCompletions, 'fastApi'),
+      nodeCompletion: domainOverall(row.domainCompletions, 'node'),
+      dotnetCompletion: domainOverall(row.domainCompletions, 'dotnet'),
+    }));
 
     if (format === 'xlsx') {
       const XLSX = await import('xlsx');
-      const sheet = XLSX.utils.json_to_sheet(rows);
+      const sheet = XLSX.utils.json_to_sheet(flatRows);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, sheet, 'PODS');
       const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
@@ -49,13 +56,16 @@ export async function GET(request: NextRequest) {
       'machineOwner',
       'machineAlignedToProject',
       'branch',
+      'fastApiCompletion',
+      'nodeCompletion',
+      'dotnetCompletion',
       'feCompletion',
       'beCompletion',
       'integrationCompletion',
       'overallCompletion',
       'updatedAt',
     ];
-    const csv = toCsv(rows as Array<Record<string, unknown>>, headers);
+    const csv = toCsv(flatRows, headers);
     return new NextResponse(csv, {
       headers: {
         'Content-Type': 'text/csv',
