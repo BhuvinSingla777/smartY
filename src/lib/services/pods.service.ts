@@ -217,10 +217,9 @@ export class PodsService {
       const existing = await prisma.pod.findUnique({
         where: { normalizedName: normalized },
       });
-      const data = this.toPrismaData(candidate.dto, normalized);
-      if (existing && !data.branch) {
-        data.branch = parsePodBranch(existing.branch);
-      }
+      const data = this.toPrismaData(candidate.dto, normalized, {
+        mergeWith: existing,
+      });
 
       if (existing) {
         const next = await prisma.pod.update({
@@ -488,46 +487,91 @@ export class PodsService {
     }
   }
 
-  private toPrismaData(dto: PodUpsertDto, normalized: string) {
+  private toPrismaData(
+    dto: PodUpsertDto,
+    normalized: string,
+    opts?: {
+      mergeWith?: {
+        description?: string | null;
+        status?: string | null;
+        startDate?: Date | null;
+        developers?: string | null;
+        machineOwner?: string | null;
+        machineAlignedToProject?: string | null;
+        branch?: string | null;
+        feCompletion?: number | null;
+        beCompletion?: number | null;
+        integrationCompletion?: number | null;
+        domainCompletions?: Prisma.JsonValue | null;
+        extraFields?: Prisma.JsonValue | null;
+      } | null;
+    },
+  ) {
+    const existing = opts?.mergeWith ?? null;
+    const merge = Boolean(existing);
+    const pickText = (
+      next: string | null | undefined,
+      prev: string | null | undefined,
+    ) => {
+      const value = next != null && String(next).trim() !== '' ? String(next).trim() : null;
+      if (value != null) return value;
+      return merge ? (prev ?? null) : null;
+    };
+    const pickPercent = (
+      next: number | null | undefined,
+      prev: number | null | undefined,
+    ) => {
+      if (next === null || next === undefined) {
+        return merge ? (prev ?? null) : null;
+      }
+      return normalizePercentage(next);
+    };
+
     const domainCompletions =
       dto.domainCompletions === undefined
         ? undefined
         : finalizeDomainCompletions(readDomainCompletions(dto.domainCompletions) ?? null);
+    const nextBranch = parsePodBranch(dto.branch);
 
     return {
       name: dto.name.trim(),
       normalizedName: normalized,
-      description: dto.description ?? null,
-      status: dto.status ?? null,
-      startDate: dto.startDate ? new Date(dto.startDate) : null,
-      developers: dto.developers ?? null,
-      machineOwner: dto.machineOwner ?? null,
-      machineAlignedToProject: dto.machineAlignedToProject ?? null,
-      branch: parsePodBranch(dto.branch) ?? null,
-      feCompletion:
-        dto.feCompletion === null || dto.feCompletion === undefined
-          ? null
-          : normalizePercentage(dto.feCompletion),
-      beCompletion:
-        dto.beCompletion === null || dto.beCompletion === undefined
-          ? null
-          : normalizePercentage(dto.beCompletion),
-      integrationCompletion:
-        dto.integrationCompletion === null || dto.integrationCompletion === undefined
-          ? null
-          : normalizePercentage(dto.integrationCompletion),
+      description: pickText(dto.description, existing?.description),
+      status: pickText(dto.status, existing?.status),
+      startDate: dto.startDate
+        ? new Date(dto.startDate)
+        : merge
+          ? (existing?.startDate ?? null)
+          : null,
+      developers: pickText(dto.developers, existing?.developers),
+      machineOwner: pickText(dto.machineOwner, existing?.machineOwner),
+      machineAlignedToProject: pickText(
+        dto.machineAlignedToProject,
+        existing?.machineAlignedToProject,
+      ),
+      branch: nextBranch ?? (merge ? parsePodBranch(existing?.branch) : null),
+      feCompletion: pickPercent(dto.feCompletion, existing?.feCompletion),
+      beCompletion: pickPercent(dto.beCompletion, existing?.beCompletion),
+      integrationCompletion: pickPercent(
+        dto.integrationCompletion,
+        existing?.integrationCompletion,
+      ),
       domainCompletions:
         domainCompletions === undefined
           ? undefined
           : domainCompletions
             ? (domainCompletions as Prisma.InputJsonValue)
-            : Prisma.JsonNull,
+            : merge
+              ? undefined
+              : Prisma.JsonNull,
       extraFields:
         dto.extraFields === undefined
           ? undefined
           : dto.extraFields && Object.keys(dto.extraFields).length > 0
             ? (dto.extraFields as Prisma.InputJsonValue)
-            : Prisma.JsonNull,
+            : merge
+              ? undefined
+              : Prisma.JsonNull,
     };
   }
 

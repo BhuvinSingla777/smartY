@@ -356,18 +356,23 @@ export class ImportsService {
         });
         const data = {
           name: d.podName.trim(),
-          description: d.description ?? null,
-          status: d.status ?? null,
-          startDate: d.startDate ? new Date(d.startDate) : null,
-          developers: d.developers ?? null,
-          machineOwner: d.machineOwner ?? null,
-          machineAlignedToProject: d.machineAlignedToProject ?? null,
+          description: d.description ?? (existing?.description ?? null),
+          status: d.status ?? (existing?.status ?? null),
+          startDate: d.startDate
+            ? new Date(d.startDate)
+            : (existing?.startDate ?? null),
+          developers: d.developers ?? (existing?.developers ?? null),
+          machineOwner: d.machineOwner ?? (existing?.machineOwner ?? null),
+          machineAlignedToProject:
+            d.machineAlignedToProject ??
+            (existing?.machineAlignedToProject ?? null),
           branch: d.branch ?? (existing?.branch ?? null),
-          feCompletion: d.feCompletion ?? null,
-          beCompletion: d.beCompletion ?? null,
-          integrationCompletion: d.integrationCompletion ?? null,
+          feCompletion: d.feCompletion ?? (existing?.feCompletion ?? null),
+          beCompletion: d.beCompletion ?? (existing?.beCompletion ?? null),
+          integrationCompletion:
+            d.integrationCompletion ?? (existing?.integrationCompletion ?? null),
           domainCompletions: d.domainCompletions
-            ? (d.domainCompletions as Prisma.InputJsonValue)
+            ? (d.domainCompletions as unknown as Prisma.InputJsonValue)
             : existing
               ? undefined
               : Prisma.JsonNull,
@@ -620,7 +625,7 @@ export class ImportsService {
           updatedNames: opts.updatedNames ?? [],
           skippedRows: opts.skippedRows ?? [],
           dailyUpserts: opts.dailyUpserts ?? 0,
-        } as Prisma.InputJsonValue,
+        } as unknown as Prisma.InputJsonValue,
       },
     });
 
